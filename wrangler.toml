@@ -1,0 +1,8 @@
+name = "choomcham"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./build/client"
+
+[vars]
+NOTIFICATION_EMAIL = "owner@choomcham.house"
+SENDER_EMAIL = "noreply@choomcham.house"

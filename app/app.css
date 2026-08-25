@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Anuphan", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Poppins", sans-serif;
+
+  /* Brand CI Colors */
+  --color-brand-purple: #4044A5;
+  --color-brand-pink: #E3346B;
+  --color-brand-yellow: #E8BD32;
+  --color-brand-green: #08B192;
+  --color-brand-blue: #36A9D6;
+
+  --color-brand-white: #FFFFFF;
+  --color-brand-surface: #F4F2F5;
+  --color-brand-black: #111111;
+  --color-brand-gray: #6B7280;
+  --color-brand-border: #E5E7EB;
+
+  /* Border Radii */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 9999px;
+
+  /* Custom Animations & Keyframes */
+  --animate-pulse-glow: pulse-glow 2.5s infinite ease-in-out;
+  --animate-float: float 5s infinite ease-in-out;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+html,
+body {
+  background-color: var(--color-brand-white);
+  color: var(--color-brand-black);
+  font-family: var(--font-sans);
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Utilities for Glow Effects using Brand CI Colors */
+.glow-pink {
+  filter: drop-shadow(0 0 15px rgba(227, 52, 107, 0.4));
+}
+.glow-purple {
+  filter: drop-shadow(0 0 15px rgba(64, 68, 165, 0.3));
+}
+.glow-green {
+  filter: drop-shadow(0 0 15px rgba(8, 177, 146, 0.4));
+}
+.glow-amber {
+  filter: drop-shadow(0 0 15px rgba(232, 189, 50, 0.4));
+}
+.glow-blue {
+  filter: drop-shadow(0 0 15px rgba(54, 169, 214, 0.4));
+}
+
+/* Glassmorphism panel using brand colors */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(64, 68, 165, 0.08);
+}
+
+.glass-panel-dark {
+  background: rgba(64, 68, 165, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+

@@ -1,0 +1,12 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+.env.local
+/node_modules/
+
+# Cloudflare Wrangler & Build
+.wrangler/
+/.react-router/
+/build/
+dist/
