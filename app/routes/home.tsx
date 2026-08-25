@@ -11,11 +11,12 @@ import { saveLeadToSupabase, sendEmailNotification, sendLineNotification } from 
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Choomcham House | ชุบชีวิตคนและองค์กร เกิดใหม่จากข้างใน" },
+    { title: "บ้านชุ่มฉ่ำ CHOOMCHAM HOUSE | ชุบชีวิตคนและองค์กร เกิดใหม่จากข้างใน" },
     { name: "description", content: "ช่วยคนและองค์กรที่กำลังหมดไฟ เหี่ยวเฉา หรือทำงานแบบ Zombie กลับมามีพลัง มี Connection และมีชีวิตชีวาอีกครั้งด้วยหลักสูตรและประสบการณ์แบบ Custom" },
-    { name: "keywords", content: "พัฒนาองค์กร, จัดอบรม, HRD, Team Building, หมดไฟ, Burnout, Organizational Rebirth, Choomcham House" },
-    { property: "og:title", content: "Choomcham House | Organizational Rebirth" },
+    { name: "keywords", content: "บ้านชุ่มฉ่ำ, Choomcham House, พัฒนาองค์กร, จัดอบรม, HRD, Team Building, หมดไฟ, Burnout, Organizational Rebirth" },
+    { property: "og:title", content: "บ้านชุ่มฉ่ำ CHOOMCHAM HOUSE | Organizational Rebirth" },
     { property: "og:description", content: "เปลี่ยน Zombie Organization ให้เป็น Living Organization กลับมามีพลังชีวิตอีกครั้ง" },
+    { property: "og:image", content: "/logo.jpg" },
   ];
 }
 
@@ -346,10 +347,20 @@ export default function Home() {
       {/* HEADER & NAVIGATION */}
       <header className="sticky top-0 z-50 glass-panel border-b border-brand-border/60">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <a href="#" className="flex items-center gap-2 group">
-            <span className="font-display font-black text-xl sm:text-2xl tracking-tight text-brand-purple hover:scale-105 transition-transform duration-300">
-              CHOOMCHAM HOUSE
-            </span>
+          <a href="#" className="flex items-center gap-3 group">
+            <img 
+              src="/logo.jpg" 
+              alt="บ้านชุ่มฉ่ำ Choomcham House Logo" 
+              className="w-10 h-10 rounded-2xl shadow-sm object-cover group-hover:scale-105 transition-transform duration-300 border border-brand-purple/15 bg-white p-0.5" 
+            />
+            <div className="flex flex-col">
+              <span className="font-display font-black text-lg sm:text-xl tracking-tight text-brand-purple leading-none group-hover:text-brand-pink transition-colors">
+                บ้านชุ่มฉ่ำ
+              </span>
+              <span className="font-display font-bold text-[9px] sm:text-[10px] tracking-widest text-brand-pink uppercase leading-tight mt-0.5">
+                CHOOMCHAM HOUSE
+              </span>
+            </div>
           </a>
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold tracking-wide text-brand-gray font-display">
             <a href="#zombie-check" className="hover:text-brand-purple transition-colors">Why Choomcham</a>
@@ -380,6 +391,17 @@ export default function Home() {
 
           <div className="max-w-5xl mx-auto text-center relative z-10 flex flex-col items-center">
             
+            {/* Official Logo Badge */}
+            <div className="mb-6 relative group">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-white p-2.5 shadow-2xl shadow-brand-pink/25 ring-4 ring-white/20 group-hover:scale-105 transition-transform duration-300 mx-auto">
+                <img 
+                  src="/logo.jpg" 
+                  alt="บ้านชุ่มฉ่ำ Choomcham House" 
+                  className="w-full h-full object-contain rounded-2xl" 
+                />
+              </div>
+            </div>
+
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-pill border border-brand-pink/30 bg-brand-pink/10 text-brand-pink text-xs font-bold uppercase tracking-widest mb-8 font-display">
               <Zap className="w-3.5 h-3.5" />
               ช่วยคนและองค์กร “เกิดใหม่จากข้างใน”
@@ -1385,14 +1407,21 @@ export default function Home() {
       <footer className="bg-brand-black border-t border-brand-border/10 py-16 px-6 relative z-10 text-xs sm:text-sm text-brand-gray">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           
-          <div className="text-center md:text-left">
-            <span className="font-display font-black text-lg tracking-tight bg-gradient-to-r from-brand-pink via-brand-purple to-brand-green bg-clip-text text-transparent block mb-2">
-              CHOOMCHAM HOUSE
-            </span>
-            <p className="text-brand-gray text-xs leading-relaxed max-w-sm">
-              Helping People & Organizations Reborn From Within. <br />
-              เกิดใหม่จากข้างใน เพื่อกลับไปสร้างสิ่งใหม่ข้างนอก
-            </p>
+          <div className="flex items-center gap-4 text-center md:text-left">
+            <img 
+              src="/logo.jpg" 
+              alt="บ้านชุ่มฉ่ำ Choomcham House" 
+              className="w-14 h-14 rounded-2xl bg-white p-1 shadow-md object-contain" 
+            />
+            <div>
+              <span className="font-display font-black text-lg tracking-tight bg-gradient-to-r from-brand-pink via-brand-yellow to-brand-green bg-clip-text text-transparent block mb-1">
+                บ้านชุ่มฉ่ำ CHOOMCHAM HOUSE
+              </span>
+              <p className="text-brand-gray text-xs leading-relaxed max-w-sm">
+                Helping People & Organizations Reborn From Within. <br />
+                เกิดใหม่จากข้างใน เพื่อกลับไปสร้างสิ่งใหม่ข้างนอก
+              </p>
+            </div>
           </div>
 
           <div className="flex gap-8 text-xs text-brand-gray font-display">
@@ -1412,9 +1441,12 @@ export default function Home() {
 
       {/* Fixed bottom Demo Bar as per KruDen WebDev step 3 instructions */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#080604]/95 backdrop-blur-md border-t border-brand-purple/10 py-3 px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-        <span className="text-[10px] text-brand-surface font-display">
-          🔮 <strong className="text-brand-pink">Demo Proposal</strong> &nbsp;·&nbsp; พัฒนาโดย ครูเด่น มาสเตอร์ฟา · CAP Vision Institute
-        </span>
+        <div className="flex items-center gap-2">
+          <img src="/logo.jpg" alt="Choomcham" className="w-5 h-5 rounded-full object-cover bg-white" />
+          <span className="text-[10px] text-brand-surface font-display">
+            🔮 <strong className="text-brand-pink">บ้านชุ่มฉ่ำ Choomcham House</strong> &nbsp;·&nbsp; พัฒนาโดย ครูเด่น มาสเตอร์ฟา · CAP Vision Institute
+          </span>
+        </div>
         <div className="flex items-center gap-3 text-[10px] font-display">
           <a href="#zombie-check" className="px-2.5 py-1 rounded-md bg-brand-black/30 border border-brand-purple/20 text-brand-surface hover:text-white transition-colors">ทำแบบประเมิน</a>
           <a href="#programs" className="px-2.5 py-1 rounded-md bg-brand-black/30 border border-brand-purple/20 text-brand-surface hover:text-white transition-colors">Programs</a>
