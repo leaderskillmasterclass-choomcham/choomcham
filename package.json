@@ -9,7 +9,6 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
-    "@react-router/cloudflare": "^8.3.0",
     "@react-router/node": "^8",
     "@react-router/serve": "^8",
     "@supabase/supabase-js": "^2.112.4",
@@ -22,7 +21,6 @@
     "resend": "^6.22.1"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260825.1",
     "@react-router/dev": "^8",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^22",
