@@ -7,7 +7,7 @@ import {
   HelpCircle, MessageSquare, Check, Phone, ArrowUpRight, ChevronRight, ChevronLeft,
   RefreshCw, Smile, Heart, RefreshCcw, Compass, Lightbulb
 } from "lucide-react";
-import { saveLeadToSupabase, sendEmailNotification, sendLineNotification } from "~/lib/services.server";
+import { saveLeadToSupabase, sendEmailNotification, sendLineNotification } from "~/lib/services";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -203,7 +203,7 @@ const TRANSFORMATION_STEPS = [
   }
 ];
 
-export async function action({ request, context }: Route.ActionArgs) {
+export async function clientAction({ request }: Route.ClientActionArgs) {
   try {
     const formData = await request.formData();
     const name = formData.get("name") as string;
@@ -217,7 +217,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     const answers = answersStr ? JSON.parse(answersStr) : [];
 
     // Save lead to Database (Supabase)
-    const dbResult = await saveLeadToSupabase(context, {
+    const dbResult = await saveLeadToSupabase(null, {
       name,
       company,
       position,
@@ -229,7 +229,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     });
 
     // Send email alert to admin (Resend)
-    await sendEmailNotification(context, {
+    await sendEmailNotification(null, {
       name,
       company,
       position,
@@ -240,7 +240,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     });
 
     // Send LINE alert to admin (LINE Notify)
-    await sendLineNotification(context, {
+    await sendLineNotification(null, {
       name,
       company,
       position,

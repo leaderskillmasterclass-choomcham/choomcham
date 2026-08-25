@@ -1,13 +1,19 @@
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 
-// Helper to get env variables dynamically on Cloudflare Pages or Node.js local dev
+// Helper to get env variables dynamically on Cloudflare Pages, browser, or Node.js local dev
 export function getEnvVar(context: any, key: string): string | undefined {
   if (context?.cloudflare?.env?.[key]) {
     return context.cloudflare.env[key];
   }
-  if (typeof process !== "undefined" && process.env && process.env[key]) {
+  if (typeof process !== "undefined" && process?.env?.[key]) {
     return process.env[key];
+  }
+  if (typeof import.meta !== "undefined" && (import.meta as any)?.env?.[key]) {
+    return (import.meta as any).env[key];
+  }
+  if (typeof import.meta !== "undefined" && (import.meta as any)?.env?.[`VITE_${key}`]) {
+    return (import.meta as any).env[`VITE_${key}`];
   }
   return undefined;
 }
