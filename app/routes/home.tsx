@@ -1444,7 +1444,7 @@ export default function Home() {
         <div className="flex items-center gap-2">
           <img src="/logo.jpg" alt="Choomcham" className="w-5 h-5 rounded-full object-cover bg-white" />
           <span className="text-[10px] text-brand-surface font-display">
-            🔮 <strong className="text-brand-pink">บ้านชุ่มฉ่ำ Choomcham House</strong> &nbsp;·&nbsp; พัฒนาโดย ครูเด่น มาสเตอร์ฟา · CAP Vision Institute
+            🔮 <strong className="text-brand-pink">บ้านชุ่มฉ่ำ Choomcham House</strong> &nbsp;·&nbsp; Helping People & Organizations Reborn From Within
           </span>
         </div>
         <div className="flex items-center gap-3 text-[10px] font-display">

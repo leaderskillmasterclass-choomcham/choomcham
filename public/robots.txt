@@ -1,0 +1,24 @@
+# Robots.txt for CHOOMCHAM HOUSE
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+# AI Crawlers & Answer Engines (AEO Ready)
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin/
+
+Sitemap: https://choomcham.pages.dev/sitemap.xml

@@ -3,6 +3,12 @@ compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "./build/client"
 
+[[r2_buckets]]
+binding = "CHOOMCHAM_R2_BUCKET"
+bucket_name = "media"
+
 [vars]
 NOTIFICATION_EMAIL = "owner@choomcham.house"
 SENDER_EMAIL = "noreply@choomcham.house"
+SUPABASE_URL = "https://upxypufbqvtmokxeutrt.supabase.co"
+R2_PUBLIC_DOMAIN = "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev"
