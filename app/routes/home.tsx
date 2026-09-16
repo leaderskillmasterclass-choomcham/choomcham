@@ -5,7 +5,8 @@ import {
   Flame, Users, Award, ShieldAlert, Sparkles, Send, 
   CheckCircle, ArrowRight, Zap, Target, BookOpen, AlertCircle,
   HelpCircle, MessageSquare, Check, Phone, ArrowUpRight, ChevronRight, ChevronLeft,
-  RefreshCw, Smile, Heart, RefreshCcw, Compass, Lightbulb
+  RefreshCw, Smile, Heart, RefreshCcw, Compass, Lightbulb,
+  Menu, X, FileText, Layers, ShieldCheck
 } from "lucide-react";
 import { saveLeadToSupabase, sendEmailNotification, sendLineNotification } from "~/lib/services";
 
@@ -281,6 +282,7 @@ export default function Home() {
   // Contact Form Tab State
   const [inquiryType, setInquiryType] = useState<"consultation" | "proposal" | "program">("consultation");
   const [contactSubmittedOverride, setContactSubmittedOverride] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Quiz States
   const [quizStarted, setQuizStarted] = useState(false);
@@ -366,12 +368,12 @@ export default function Home() {
       
       {/* HEADER & NAVIGATION */}
       <header className="sticky top-0 z-50 glass-panel border-b border-brand-border/60">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
           <a href="#" className="flex items-center gap-3 group">
             <img 
               src="/logo.jpg" 
               alt="บ้านชุ่มฉ่ำ Choomcham House Logo" 
-              className="w-10 h-10 rounded-2xl shadow-sm object-cover group-hover:scale-105 transition-transform duration-300 border border-brand-purple/15 bg-white p-0.5" 
+              className="w-10 h-10 rounded-2xl shadow-xs object-cover group-hover:scale-105 transition-transform duration-300 border border-brand-purple/15 bg-white p-0.5" 
             />
             <div className="flex flex-col">
               <span className="font-display font-black text-lg sm:text-xl tracking-tight text-brand-purple leading-none group-hover:text-brand-pink transition-colors">
@@ -382,29 +384,164 @@ export default function Home() {
               </span>
             </div>
           </a>
-          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold tracking-wide text-brand-gray font-display">
-            <a href="#zombie-check" className="hover:text-brand-purple transition-colors">Why Choomcham</a>
-            <a href="#model" className="hover:text-brand-purple transition-colors">Transformation</a>
-            <a href="#programs" className="hover:text-brand-purple transition-colors">Programs</a>
-            <a href="#work" className="hover:text-brand-purple transition-colors">How We Work</a>
-            <a href="#about" className="hover:text-brand-purple transition-colors">About</a>
-            <a href="#contact" className="hover:text-brand-pink text-brand-purple font-bold transition-colors">ติดต่อ / นัดคุย</a>
+
+          {/* Desktop Nav Links (Clean & Non-redundant) */}
+          <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold tracking-wide text-brand-gray font-display">
+            <a href="#zombie-check" className="hover:text-brand-purple transition-colors">สภาวะ Zombie</a>
+            <a href="#model" className="hover:text-brand-purple transition-colors">กระบวนการ Reborn</a>
+            <a href="#programs" className="hover:text-brand-purple transition-colors">หลักสูตรองค์กร</a>
+            <a href="#work" className="hover:text-brand-purple transition-colors">วิธีทำงาน</a>
+            <a href="#about" className="hover:text-brand-purple transition-colors">เกี่ยวกับเรา</a>
           </nav>
-          <div className="flex items-center gap-2.5">
+
+          {/* Desktop Action Buttons */}
+          <div className="hidden sm:flex items-center gap-2.5">
             <a 
               href="#zombie-check" 
-              className="hidden sm:inline-block px-4 py-2 rounded-pill border border-brand-pink/30 text-brand-pink hover:bg-brand-pink/10 font-display font-semibold text-xs tracking-wide transition-all duration-300 uppercase"
+              className="px-4 py-2 rounded-pill border border-brand-pink/30 text-brand-pink hover:bg-brand-pink/10 font-display font-semibold text-xs tracking-wide transition-all duration-300 uppercase"
             >
-              Zombie Check
+              ตรวจสุขภาพองค์กร
             </a>
             <a 
               href="#contact" 
               className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-pill bg-brand-pink text-brand-white font-display font-semibold text-xs tracking-wide hover:shadow-[0_4px_14px_rgba(227,52,107,0.35)] hover:-translate-y-0.5 transition-all duration-300 block text-center uppercase"
             >
-              นัดคุย / ขอใบเสนอราคา
+              นัดคุย / ขอ Proposal
             </a>
           </div>
+
+          {/* Mobile Actions & Hamburger Toggle */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <a 
+              href="#contact" 
+              className="sm:hidden px-3 py-1.5 rounded-pill bg-brand-pink text-brand-white font-display font-bold text-[11px] uppercase tracking-wide"
+            >
+              นัดคุย
+            </a>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-brand-purple transition-colors border border-purple-200/60"
+              aria-label="Toggle Navigation Menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5 text-brand-pink" /> : <Menu className="w-5 h-5 text-brand-purple" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Slide-down Sub-Menu Drawer */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden border-t border-brand-border/60 bg-white/98 backdrop-blur-xl px-6 py-6 shadow-2xl animate-in slide-in-from-top-4 duration-200">
+            <div className="space-y-6 max-w-md mx-auto">
+              
+              {/* Category 1: Assessment */}
+              <div>
+                <span className="text-[10px] font-black text-brand-pink tracking-widest uppercase block mb-2 font-display">
+                  🧟 1. ตรวจประเมินสุขภาพองค์กร
+                </span>
+                <div className="space-y-1.5 pl-3 border-l-2 border-brand-pink/30">
+                  <a
+                    href="#zombie-check"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
+                  >
+                    <span>แบบประเมิน Zombie Organization Check™</span>
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </a>
+                  <a
+                    href="#pain"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between py-1 text-xs text-slate-600 hover:text-brand-purple transition-colors"
+                  >
+                    <span>สัญญาณเตือนภาวะองค์กรหมดไฟ</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Category 2: Programs & Model */}
+              <div>
+                <span className="text-[10px] font-black text-brand-purple tracking-widest uppercase block mb-2 font-display">
+                  🚀 2. กระบวนการ & หลักสูตร
+                </span>
+                <div className="space-y-1.5 pl-3 border-l-2 border-brand-purple/30">
+                  <a
+                    href="#model"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
+                  >
+                    <span>5 ขั้นตอนการเกิดใหม่ (Reset → Recreate)</span>
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </a>
+                  <a
+                    href="#programs"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between py-1 text-xs text-slate-600 hover:text-brand-purple transition-colors"
+                  >
+                    <span>4 หลักสูตรหลัก (People, Team, Leader, Org)</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                  </a>
+                  <a
+                    href="#work"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between py-1 text-xs text-slate-600 hover:text-brand-purple transition-colors"
+                  >
+                    <span>แนวทางการจัดประสบการณ์และการทำงาน</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Category 3: About & Philosophy */}
+              <div>
+                <span className="text-[10px] font-black text-brand-green tracking-widest uppercase block mb-2 font-display">
+                  🌿 3. เกี่ยวกับบ้านชุ่มฉ่ำ
+                </span>
+                <div className="space-y-1.5 pl-3 border-l-2 border-brand-green/30">
+                  <a
+                    href="#about"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
+                  >
+                    <span>เรื่องราวและความเชื่อของเรา</span>
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </a>
+                  <a
+                    href="#belief"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between py-1 text-xs text-slate-600 hover:text-brand-purple transition-colors"
+                  >
+                    <span>“แบรนด์ที่มีชีวิต เริ่มจากคนที่มีชีวิต”</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Action Buttons in Drawer */}
+              <div className="pt-4 border-t border-slate-100 space-y-2">
+                <a
+                  href="#contact"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-3 rounded-xl bg-brand-pink text-white font-bold text-center text-xs flex items-center justify-center gap-2 shadow-md uppercase tracking-wider"
+                >
+                  <span>นัดพูดคุย / ขอใบเสนอราคา</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </a>
+                <a
+                  href="/proposal?company=องค์กรของคุณ&price=185000"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-2.5 rounded-xl border border-purple-200 bg-purple-50 text-purple-900 font-bold text-center text-xs flex items-center justify-center gap-2 transition-colors"
+                >
+                  <FileText className="w-3.5 h-3.5 text-purple-700" />
+                  <span>ดูตัวอย่าง Proposal ดิจิทัล</span>
+                </a>
+              </div>
+
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Container */}
