@@ -86,13 +86,26 @@ export async function onRequestPost(context: { request: Request; env: any }) {
 
     if (lineChannelToken) {
       const isValidTargetUser = lineTargetUserId && !lineTargetUserId.includes("PASTE_");
+      const isConsultOrProposal = body.result_level === "CONSULT_BRIEF" || body.result_level === "PROPOSAL_REQUEST" || body.result_level === "INQUIRY";
+      
+      const badgeText = isConsultOrProposal 
+        ? "🎯 นัดพูดคุย & ขอใบเสนอราคาองค์กร" 
+        : "🧟 ZOMBIE ORGANIZATION CHECK™";
+        
+      const headerTitle = isConsultOrProposal
+        ? (body.result_level === "PROPOSAL_REQUEST" ? "มีคำขอใบเสนอราคา & ออกแบบหลักสูตร" : "มีนัดพูดคุยปรึกษาโจทย์องค์กรใหม่")
+        : "มีผลประเมินสุขภาพองค์กรใหม่";
+
       const themeColor = body.result_level === "ZOMBIE" ? "#E11D48" :
                          body.result_level === "FADED" ? "#EA580C" :
-                         body.result_level === "TIRED" ? "#D97706" : "#059669";
+                         body.result_level === "TIRED" ? "#D97706" : 
+                         isConsultOrProposal ? "#9333EA" : "#059669";
 
       const flexMessage = {
         type: "flex",
-        altText: `🧟 [Lead ใหม่] ${body.name} (${body.company}) - ${body.result_level}`,
+        altText: isConsultOrProposal 
+          ? `🎯 [นัดคุย/ขอ Proposal] ${body.name} (${body.company})`
+          : `🧟 [Lead ใหม่] ${body.name} (${body.company}) - ${body.result_level}`,
         contents: {
           type: "bubble",
           size: "giga",
@@ -104,14 +117,14 @@ export async function onRequestPost(context: { request: Request; env: any }) {
             contents: [
               {
                 type: "text",
-                text: "🧟 ZOMBIE ORGANIZATION CHECK™",
+                text: badgeText,
                 color: "#FDE047",
                 weight: "bold",
                 size: "xxs"
               },
               {
                 type: "text",
-                text: "มีผลประเมินสุขภาพองค์กรใหม่",
+                text: headerTitle,
                 color: "#FFFFFF",
                 weight: "bold",
                 size: "lg",
@@ -152,8 +165,8 @@ export async function onRequestPost(context: { request: Request; env: any }) {
                 type: "box",
                 layout: "horizontal",
                 contents: [
-                  { type: "text", text: "ระดับประเมิน:", color: "#64748B", size: "sm", flex: 2 },
-                  { type: "text", text: `${body.result_level} (${body.score}/40 คะแนน)`, color: themeColor, weight: "bold", size: "sm", flex: 4 }
+                  { type: "text", text: isConsultOrProposal ? "ความต้องการ:" : "ระดับประเมิน:", color: "#64748B", size: "sm", flex: 2 },
+                  { type: "text", text: isConsultOrProposal ? (body.team_size || "ออกแบบโปรแกรมเฉพาะ") : `${body.result_level} (${body.score}/40 คะแนน)`, color: themeColor, weight: "bold", size: "sm", flex: 4, wrap: true }
                 ]
               }
             ]

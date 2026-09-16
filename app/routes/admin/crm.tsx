@@ -14,7 +14,8 @@ import {
   Sparkles,
   ArrowRight,
   Download,
-  RefreshCw
+  RefreshCw,
+  FileText
 } from "lucide-react";
 import { fetchLeadsFromSupabase, updateLeadStatusInSupabase } from "~/lib/services";
 
@@ -362,16 +363,47 @@ export default function AdminCRM() {
                   placeholder="บันทึกรายละเอียดการพูดคุย หรือโจทย์เฉพาะขององค์กร..."
                 />
               </div>
+              {/* Proposal & Transformation Blueprint Generator */}
+              <div className="mt-6 p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200/80">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-4 h-4 text-purple-600" />
+                  <span className="text-xs font-bold text-purple-950">Choomcham Proposal & Quotation Engine</span>
+                </div>
+                <p className="text-[11px] text-slate-600 mb-3 leading-relaxed">
+                  สร้างและออกใบเสนอราคาพร้อม 5-Stage Transformation Blueprint ส่งให้องค์กร {selectedLead.company} ได้ทันที
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <a
+                    href={`/proposal?company=${encodeURIComponent(selectedLead.company)}&name=${encodeURIComponent(selectedLead.name)}&position=${encodeURIComponent(selectedLead.position)}&teamSize=${encodeURIComponent(selectedLead.teamSize)}&price=185000`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 min-w-[140px] bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>เปิดดู / พิมพ์ Proposal</span>
+                  </a>
+                  <button
+                    onClick={() => {
+                      const proposalUrl = `${window.location.origin}/proposal?company=${encodeURIComponent(selectedLead.company)}&name=${encodeURIComponent(selectedLead.name)}&position=${encodeURIComponent(selectedLead.position)}&teamSize=${encodeURIComponent(selectedLead.teamSize)}&price=185000`;
+                      navigator.clipboard.writeText(proposalUrl);
+                      alert(`คัดลอกลิงก์ Proposal สำหรับ ${selectedLead.company} เรียบร้อยแล้ว!\nสามารถส่งให้ลูกค้าเปิดดูหรือพิมพ์ได้ทันทีครับ`);
+                    }}
+                    className="px-3 py-2 bg-white hover:bg-slate-50 border border-purple-300 text-purple-800 font-semibold rounded-xl text-xs transition-colors"
+                  >
+                    คัดลอกลิงก์
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Quick Actions Footer */}
             <div className="pt-6 border-t border-slate-100 flex items-center gap-3">
               <a
-                href={`mailto:${selectedLead.emailOrLine}`}
+                href={`mailto:${selectedLead.emailOrLine}?subject=ข้อเสนอโครงการ Reborn Organization สำหรับ ${encodeURIComponent(selectedLead.company)} จาก บ้านชุ่มฉ่ำ Choomcham House`}
                 className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition-colors"
               >
                 <Mail className="w-4 h-4" />
-                <span>ส่งอีเมลติดต่อ</span>
+                <span>ส่งอีเมลติดต่อลูกค้า</span>
               </a>
               <button
                 onClick={() => setSelectedLead(null)}

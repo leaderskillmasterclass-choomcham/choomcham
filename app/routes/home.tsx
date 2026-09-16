@@ -207,25 +207,36 @@ const TRANSFORMATION_STEPS = [
 export async function clientAction({ request }: Route.ClientActionArgs) {
   try {
     const formData = await request.formData();
+    const formType = (formData.get("form_type") as string) || "quiz";
     const name = formData.get("name") as string;
     const company = formData.get("company") as string;
     const position = formData.get("position") as string;
     const email_or_line = formData.get("email_or_line") as string;
-    const team_size = formData.get("team_size") as string;
-    const score = parseInt(formData.get("score") as string, 10);
-    const result_level = formData.get("result_level") as string;
+    const team_size = (formData.get("team_size") as string) || "";
+    const score = parseInt((formData.get("score") as string) || "0", 10);
+    const result_level = (formData.get("result_level") as string) || "NEW";
     const answersStr = formData.get("answers") as string;
     const answers = answersStr ? JSON.parse(answersStr) : [];
+    
+    const program_interest = (formData.get("program_interest") as string) || "";
+    const timeline = (formData.get("timeline") as string) || "";
+    const details = (formData.get("details") as string) || "";
 
     const leadPayload = {
       name,
       company,
       position,
       email_or_line,
-      team_size,
+      team_size: team_size || (program_interest ? `สนใจ: ${program_interest}` : "ไม่ได้ระบุ"),
       score,
       result_level,
-      answers
+      answers,
+      dimensions_scores: {
+        form_type: formType,
+        program_interest,
+        timeline,
+        details
+      }
     };
 
     // 1. Try sending through Cloudflare Serverless Edge API (/api/lead)
@@ -253,7 +264,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
       await sendLineNotification(null, leadPayload);
     }
 
-    return { success: true, dbResult };
+    return { success: true, formType, dbResult };
   } catch (error: any) {
     console.error("Action error:", error);
     return { success: false, error: error.message || "Failed to process lead submission" };
@@ -263,7 +274,13 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 export default function Home() {
   const fetcher = useFetcher();
   const isSubmitting = fetcher.state === "submitting";
-  const hasSubmitted = fetcher.data && (fetcher.data as any).success;
+  
+  const hasSubmittedQuiz = fetcher.data && (fetcher.data as any).success && (fetcher.data as any).formType === "quiz";
+  const hasSubmittedContact = fetcher.data && (fetcher.data as any).success && (fetcher.data as any).formType === "contact";
+
+  // Contact Form Tab State
+  const [inquiryType, setInquiryType] = useState<"consultation" | "proposal" | "program">("consultation");
+  const [contactSubmittedOverride, setContactSubmittedOverride] = useState(false);
 
   // Quiz States
   const [quizStarted, setQuizStarted] = useState(false);
@@ -365,19 +382,26 @@ export default function Home() {
               </span>
             </div>
           </a>
-          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold tracking-wide text-brand-gray font-display">
+          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold tracking-wide text-brand-gray font-display">
             <a href="#zombie-check" className="hover:text-brand-purple transition-colors">Why Choomcham</a>
             <a href="#model" className="hover:text-brand-purple transition-colors">Transformation</a>
             <a href="#programs" className="hover:text-brand-purple transition-colors">Programs</a>
             <a href="#work" className="hover:text-brand-purple transition-colors">How We Work</a>
             <a href="#about" className="hover:text-brand-purple transition-colors">About</a>
+            <a href="#contact" className="hover:text-brand-pink text-brand-purple font-bold transition-colors">ติดต่อ / นัดคุย</a>
           </nav>
-          <div>
+          <div className="flex items-center gap-2.5">
             <a 
               href="#zombie-check" 
-              className="px-5 py-2.5 rounded-pill bg-brand-pink text-brand-white font-display font-semibold text-xs tracking-wide hover:shadow-[0_4px_14px_rgba(227,52,107,0.35)] hover:-translate-y-0.5 transition-all duration-300 block text-center uppercase"
+              className="hidden sm:inline-block px-4 py-2 rounded-pill border border-brand-pink/30 text-brand-pink hover:bg-brand-pink/10 font-display font-semibold text-xs tracking-wide transition-all duration-300 uppercase"
             >
               Zombie Check
+            </a>
+            <a 
+              href="#contact" 
+              className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-pill bg-brand-pink text-brand-white font-display font-semibold text-xs tracking-wide hover:shadow-[0_4px_14px_rgba(227,52,107,0.35)] hover:-translate-y-0.5 transition-all duration-300 block text-center uppercase"
+            >
+              นัดคุย / ขอใบเสนอราคา
             </a>
           </div>
         </div>
@@ -508,7 +532,7 @@ export default function Home() {
                 </p>
               </div>
 
-              {!quizStarted && !showLeadForm && !hasSubmitted && (
+              {!quizStarted && !showLeadForm && !hasSubmittedQuiz && (
                 <div className="text-center py-8">
                   <p className="text-brand-gray text-sm mb-6 max-w-md mx-auto">
                     ใช้เวลาประเมินเพียง 2 นาที พร้อมรับรายงานเบื้องต้นประกอบการเกิดใหม่ขององค์กร
@@ -569,7 +593,7 @@ export default function Home() {
                 </div>
               )}
 
-              {showLeadForm && !hasSubmitted && (
+              {showLeadForm && !hasSubmittedQuiz && (
                 <div className="max-w-lg mx-auto">
                   <div className="text-center mb-6">
                     <h3 className="text-xl font-bold mb-2">ประเมินสภาวะเสร็จสิ้น!</h3>
@@ -579,6 +603,7 @@ export default function Home() {
                   </div>
 
                   <fetcher.Form method="post" className="space-y-4">
+                    <input type="hidden" name="form_type" value="quiz" />
                     <input type="hidden" name="score" value={currentScore} />
                     <input type="hidden" name="result_level" value={resultInfo.level} />
                     <input type="hidden" name="answers" value={JSON.stringify(quizAnswers)} />
@@ -639,7 +664,7 @@ export default function Home() {
                 </div>
               )}
 
-              {hasSubmitted && (
+              {hasSubmittedQuiz && (
                 <div className="text-center py-4 max-w-lg mx-auto">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill border border-brand-green/30 bg-brand-green/10 text-brand-green text-xs font-semibold mb-4 font-display">
                     <CheckCircle className="w-3.5 h-3.5" /> วิเคราะห์เสร็จสิ้น
@@ -1290,110 +1315,228 @@ export default function Home() {
 
 
         {/* SECTION 13: FINAL CTA & CONTACT FORM */}
-        <section id="contact" className="py-24 px-6 bg-brand-purple text-brand-white relative">
+        <section id="contact" className="py-24 px-6 bg-brand-purple text-brand-white relative scroll-mt-20">
           <div className="max-w-4xl mx-auto">
             
-            <div className="bg-brand-white/5 border border-brand-white/10 rounded-lg p-8 md:p-12 shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-brand-pink/10 rounded-full blur-[100px] pointer-events-none"></div>
+            <div className="bg-brand-white/5 border border-brand-white/10 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden backdrop-blur-xs">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-brand-pink/15 rounded-full blur-[100px] pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 w-72 h-72 bg-brand-yellow/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-              <div className="text-center mb-12">
-                <span className="text-brand-yellow text-xs font-bold tracking-widest uppercase block mb-3 font-display">11 — CTA</span>
-                <h2 className="text-3xl sm:text-5xl font-sans font-extrabold mb-6 leading-tight mt-2 text-brand-white">
+              <div className="text-center mb-10 relative z-10">
+                <span className="text-brand-yellow text-xs font-bold tracking-widest uppercase block mb-3 font-display">
+                  CONTACT & CUSTOM PROGRAM DESIGN
+                </span>
+                <h2 className="text-3xl sm:text-5xl font-sans font-extrabold mb-4 leading-tight text-brand-white">
                   องค์กรของคุณพร้อมกลับมามีชีวิตหรือยัง?
                 </h2>
                 
-                <div className="text-left max-w-2xl mx-auto p-6 rounded-lg bg-brand-white/10 border border-brand-white/10 mb-8 space-y-4">
-                  <p className="text-brand-surface text-sm sm:text-base leading-relaxed">
-                    หากคุณรู้สึกว่าทีมของคุณกำลังทำงานแบบเดิม ด้วยพลังแบบเดิม และได้ผลลัพธ์แบบเดิม...
-                  </p>
-                  <p className="text-lg font-bold text-brand-yellow font-display">
-                    บางทีสิ่งที่องค์กรต้องการ อาจไม่ใช่ “การอบรมอีกหนึ่งครั้ง” ... แต่อาจเป็น... “การเกิดใหม่”
-                  </p>
-                </div>
-
-                <p className="text-base text-brand-surface font-semibold">
-                  คุยกับ Choomcham House เพื่อออกแบบประสบการณ์ที่เหมาะกับคนและองค์กรของคุณ
+                <p className="text-brand-surface text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+                  นัดพูดคุยเพื่อวิเคราะห์โจทย์ ขอใบเสนอราคา (Proposal) หรือปรึกษาการออกแบบหลักสูตรที่เหมาะสมกับคนและวัฒนธรรมองค์กรของคุณ
                 </p>
+
+                {/* Inquiry Type Segmented Tabs */}
+                <div className="flex flex-wrap justify-center gap-2 mt-8 max-w-xl mx-auto p-1.5 bg-black/20 rounded-2xl border border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => { setInquiryType("consultation"); setContactSubmittedOverride(false); }}
+                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold font-display transition-all ${
+                      inquiryType === "consultation"
+                        ? "bg-brand-pink text-white shadow-md"
+                        : "text-white/70 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    🎙️ นัดพูดคุยปรึกษาโจทย์
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setInquiryType("proposal"); setContactSubmittedOverride(false); }}
+                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold font-display transition-all ${
+                      inquiryType === "proposal"
+                        ? "bg-brand-pink text-white shadow-md"
+                        : "text-white/70 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    📋 ขอใบเสนอราคา Proposal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setInquiryType("program"); setContactSubmittedOverride(false); }}
+                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold font-display transition-all ${
+                      inquiryType === "program"
+                        ? "bg-brand-pink text-white shadow-md"
+                        : "text-white/70 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    📚 สอบถามหลักสูตรอบรม
+                  </button>
+                </div>
               </div>
 
               {/* Form submission response message */}
-              {fetcher.data && !(fetcher.data as any).answers && (fetcher.data as any).success ? (
-                <div className="p-8 rounded-lg bg-brand-green/10 border border-brand-green/30 text-center max-w-xl mx-auto">
+              {(hasSubmittedContact && !contactSubmittedOverride) ? (
+                <div className="p-8 sm:p-10 rounded-2xl bg-brand-green/15 border border-brand-green/40 text-center max-w-xl mx-auto animate-in zoom-in-95 duration-300">
                   <CheckCircle className="w-16 h-16 text-brand-green mx-auto mb-4 glow-green animate-bounce" />
-                  <h3 className="text-2xl font-bold text-brand-green mb-2">ส่งข้อมูลสำเร็จ!</h3>
-                  <p className="text-brand-surface text-sm">
-                    ขอบคุณที่ติดต่อ Choomcham House ทีมผู้ออกแบบจะติดต่อกลับหาคุณภายใน 24 ชั่วโมง เพื่อวิเคราะห์โจทย์เบื้องต้นร่วมกันครับ
+                  <h3 className="text-2xl font-bold text-brand-green mb-2 font-display">ส่งข้อมูลสำเร็จเรียบร้อย!</h3>
+                  <p className="text-white text-sm leading-relaxed mb-6">
+                    ขอบคุณที่ติดต่อ <strong>บ้านชุ่มฉ่ำ Choomcham House</strong> ทีมผู้ออกแบบกระบวนการจะติดต่อกลับหาคุณภายใน 24 ชั่วโมง เพื่อส่งเอกสารข้อเสนอโครงการและนัดหมายเวลาพูดคุยครับ
                   </p>
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    <a
+                      href="/proposal?company=องค์กรของคุณ&price=185000"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-5 py-2.5 rounded-pill bg-white text-purple-900 font-bold text-xs hover:bg-slate-100 transition-colors"
+                    >
+                      ดูตัวอย่างรูปแบบ Proposal
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setContactSubmittedOverride(true)}
+                      className="px-5 py-2.5 rounded-pill border border-white/30 text-white hover:bg-white/10 font-bold text-xs transition-colors"
+                    >
+                      ส่งข้อมูลเพิ่มเติม / ติดต่อเรื่องอื่น
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <div className="max-w-xl mx-auto text-brand-black">
-                  <fetcher.Form method="post" className="space-y-5">
+                <div className="max-w-2xl mx-auto text-brand-black">
+                  <fetcher.Form method="post" className="space-y-4">
+                    <input type="hidden" name="form_type" value="contact" />
+                    <input type="hidden" name="score" value="0" />
+                    <input 
+                      type="hidden" 
+                      name="result_level" 
+                      value={inquiryType === "proposal" ? "PROPOSAL_REQUEST" : inquiryType === "consultation" ? "CONSULT_BRIEF" : "INQUIRY"} 
+                    />
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-2 font-display">ชื่อผู้ติดต่อ</label>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
+                          ชื่อผู้ติดต่อ <span className="text-brand-pink">*</span>
+                        </label>
                         <input 
                           type="text" 
                           name="name" 
                           required
                           placeholder="ชื่อ-นามสกุลของคุณ"
-                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-md px-4 py-3 text-brand-black outline-none transition-colors text-sm"
+                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors text-sm shadow-xs"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-2 font-display">บริษัท / องค์กร</label>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
+                          บริษัท / องค์กร <span className="text-brand-pink">*</span>
+                        </label>
                         <input 
                           type="text" 
                           name="company" 
                           required
                           placeholder="ชื่อบริษัทหรือหน่วยงาน"
-                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-md px-4 py-3 text-brand-black outline-none transition-colors text-sm"
+                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors text-sm shadow-xs"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-2 font-display">ตำแหน่งงาน</label>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
+                          ตำแหน่งงาน <span className="text-brand-pink">*</span>
+                        </label>
                         <input 
                           type="text" 
                           name="position" 
                           required
-                          placeholder="เช่น HR, Founder, CEO"
-                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-md px-4 py-3 text-brand-black outline-none transition-colors text-sm"
+                          placeholder="เช่น HRD, MD, Founder, CEO"
+                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors text-sm shadow-xs"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-2 font-display">ข้อมูลติดต่อ (อีเมล / ID LINE)</label>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
+                          ช่องทางติดต่อ (อีเมล / LINE ID / เบอร์โทร) <span className="text-brand-pink">*</span>
+                        </label>
                         <input 
                           type="text" 
                           name="email_or_line" 
                           required
-                          placeholder="email@company.com หรือ ID Line"
-                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-md px-4 py-3 text-brand-black outline-none transition-colors text-sm"
+                          placeholder="อีเมล หรือ เบอร์โทร / ID LINE"
+                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors text-sm shadow-xs"
                         />
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-2 font-display">เล่าอาการองค์กรหรือเป้าหมายที่ต้องการปรับแต่ง</label>
-                      <textarea 
-                        name="team_size" 
-                        required
-                        rows={4}
-                        placeholder="เช่น ทีมขาดความเชื่อมโยง ทำงานแบบหุ่นยนต์, ต้องการกระตุ้นความริเริ่มสร้างสรรค์, พนักงานเฉื่อยชาหมดไฟสะสม"
-                        className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-md px-4 py-3 text-brand-black outline-none transition-colors resize-none text-sm"
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="sm:col-span-1">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
+                          หลักสูตรที่สนใจ
+                        </label>
+                        <select 
+                          name="program_interest"
+                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors text-sm shadow-xs appearance-none font-medium"
+                        >
+                          <option value="REBORN PEOPLE">REBORN PEOPLE (ชุบชีวิตคนทำงาน)</option>
+                          <option value="ALIVE TEAM">ALIVE TEAM (สลาย Silo เชื่อมใจ)</option>
+                          <option value="REBORN LEADER">REBORN LEADER (ผู้นำแบบ Coach)</option>
+                          <option value="LIVING ORGANIZATION">LIVING ORG (วัฒนธรรมองค์กร)</option>
+                          <option value="CUSTOM WORKSHOP">ออกแบบ Workshop เฉพาะทาง</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
+                          จำนวนคนโดยประมาณ
+                        </label>
+                        <select 
+                          name="team_size"
+                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors text-sm shadow-xs appearance-none font-medium"
+                        >
+                          <option value="15-30 คน">15 - 30 ท่าน (Intensive)</option>
+                          <option value="31-60 คน">31 - 60 ท่าน (Department)</option>
+                          <option value="61-100 คน">61 - 100 ท่าน (Medium Org)</option>
+                          <option value="100+ คน">100 ท่านขึ้นไป (All-Hands)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
+                          ช่วงเวลาที่คาดว่าจะจัด
+                        </label>
+                        <select 
+                          name="timeline"
+                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors text-sm shadow-xs appearance-none font-medium"
+                        >
+                          <option value="ด่วนที่สุดใน 1 เดือน">ด่วนที่สุดใน 1 เดือน</option>
+                          <option value="ภายใน 2-3 เดือน">ภายใน 2 - 3 เดือน</option>
+                          <option value="วางแผนล่วงหน้า / ขอใบเสนอราคา">วางแผนล่วงหน้า / งบประมาณ</option>
+                        </select>
+                      </div>
                     </div>
 
-                    <input type="hidden" name="score" value="0" />
-                    <input type="hidden" name="result_level" value="CONSULT_BRIEF" />
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
+                        โจทย์หรือเป้าหมายที่ต้องการให้เราช่วยออกแบบ
+                      </label>
+                      <textarea 
+                        name="details" 
+                        rows={3}
+                        placeholder="เช่น ทีมขาดความเชื่อมโยง ทำงานแบบหุ่นยนต์, ต้องการกระตุ้นความริเริ่มสร้างสรรค์, พนักงานเฉื่อยชาหมดไฟสะสม..."
+                        className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors resize-none text-sm shadow-xs"
+                      />
+                    </div>
 
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full py-4 mt-4 rounded-pill bg-brand-pink text-brand-white font-display font-bold text-lg tracking-wide hover:shadow-[0_4px_14px_rgba(227,52,107,0.35)] disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full py-4 mt-4 rounded-pill bg-brand-pink text-brand-white font-display font-bold text-base sm:text-lg tracking-wide hover:shadow-[0_4px_14px_rgba(227,52,107,0.35)] disabled:opacity-50 flex items-center justify-center gap-2 hover:scale-101 active:scale-99 transition-all cursor-pointer"
                     >
-                      {isSubmitting ? "กำลังส่งข้อความ..." : "คุยกับเราเพื่อเกิดใหม่"}
+                      {isSubmitting ? (
+                        <span className="flex items-center gap-2">
+                          <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                          <span>กำลังส่งข้อมูล...</span>
+                        </span>
+                      ) : (
+                        <span>
+                          {inquiryType === "proposal" ? "ขอใบเสนอราคา & ออกแบบโปรแกรม" : inquiryType === "consultation" ? "นัดพูดคุยวิเคราะห์โจทย์องค์กร" : "ส่งข้อความติดต่อทีมงาน"}
+                        </span>
+                      )}
                     </button>
                   </fetcher.Form>
                 </div>
