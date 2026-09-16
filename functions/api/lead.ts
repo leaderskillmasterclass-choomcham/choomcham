@@ -55,13 +55,13 @@ export async function onRequestPost(context: { request: Request; env: any }) {
 
     // 2. Resend Email Trigger on Edge
     const resendApiKey = env.RESEND_API_KEY;
-    const notificationEmail = env.NOTIFICATION_EMAIL || "owner@choomcham.house";
-    const senderEmail = env.SENDER_EMAIL || "noreply@choomcham.house";
+    const notificationEmail = env.NOTIFICATION_EMAIL || "leaderskillmasterclass@gmail.com";
+    const senderEmail = env.SENDER_EMAIL || "onboarding@resend.dev";
 
     if (resendApiKey) {
       const resend = new Resend(resendApiKey);
       await resend.emails.send({
-        from: `Choomcham Platform <${senderEmail}>`,
+        from: `Choomcham Platform <${senderEmail.includes("choomcham.house") ? "onboarding@resend.dev" : senderEmail}>`,
         to: notificationEmail,
         subject: `🧟 [Edge Lead] ${body.name} (${body.company}) - ${body.result_level}`,
         html: `
@@ -85,98 +85,100 @@ export async function onRequestPost(context: { request: Request; env: any }) {
     const lineTargetUserId = env.LINE_TARGET_USER_ID;
 
     if (lineChannelToken) {
-      if (lineTargetUserId) {
-        const themeColor = body.result_level === "ZOMBIE" ? "#E11D48" :
-                           body.result_level === "FADED" ? "#EA580C" :
-                           body.result_level === "TIRED" ? "#D97706" : "#059669";
+      const isValidTargetUser = lineTargetUserId && !lineTargetUserId.includes("PASTE_");
+      const themeColor = body.result_level === "ZOMBIE" ? "#E11D48" :
+                         body.result_level === "FADED" ? "#EA580C" :
+                         body.result_level === "TIRED" ? "#D97706" : "#059669";
 
-        const flexMessage = {
-          type: "flex",
-          altText: `🧟 [Lead ใหม่] ${body.name} (${body.company}) - ${body.result_level}`,
-          contents: {
-            type: "bubble",
-            size: "giga",
-            header: {
-              type: "box",
-              layout: "vertical",
-              backgroundColor: "#4044A5",
-              paddingAll: "20px",
-              contents: [
-                {
-                  type: "text",
-                  text: "🧟 ZOMBIE ORGANIZATION CHECK™",
-                  color: "#FDE047",
-                  weight: "bold",
-                  size: "xxs"
-                },
-                {
-                  type: "text",
-                  text: "มีผลประเมินสุขภาพองค์กรใหม่",
-                  color: "#FFFFFF",
-                  weight: "bold",
-                  size: "lg",
-                  margin: "xs"
+      const flexMessage = {
+        type: "flex",
+        altText: `🧟 [Lead ใหม่] ${body.name} (${body.company}) - ${body.result_level}`,
+        contents: {
+          type: "bubble",
+          size: "giga",
+          header: {
+            type: "box",
+            layout: "vertical",
+            backgroundColor: "#4044A5",
+            paddingAll: "20px",
+            contents: [
+              {
+                type: "text",
+                text: "🧟 ZOMBIE ORGANIZATION CHECK™",
+                color: "#FDE047",
+                weight: "bold",
+                size: "xxs"
+              },
+              {
+                type: "text",
+                text: "มีผลประเมินสุขภาพองค์กรใหม่",
+                color: "#FFFFFF",
+                weight: "bold",
+                size: "lg",
+                margin: "xs"
+              }
+            ]
+          },
+          body: {
+            type: "box",
+            layout: "vertical",
+            spacing: "md",
+            contents: [
+              {
+                type: "box",
+                layout: "horizontal",
+                contents: [
+                  { type: "text", text: "บริษัท:", color: "#64748B", size: "sm", flex: 2 },
+                  { type: "text", text: body.company, color: "#0F172A", weight: "bold", size: "sm", flex: 4 }
+                ]
+              },
+              {
+                type: "box",
+                layout: "horizontal",
+                contents: [
+                  { type: "text", text: "ผู้ติดต่อ:", color: "#64748B", size: "sm", flex: 2 },
+                  { type: "text", text: `${body.name} (${body.position})`, color: "#0F172A", size: "sm", flex: 4 }
+                ]
+              },
+              {
+                type: "box",
+                layout: "horizontal",
+                contents: [
+                  { type: "text", text: "ติดต่อ:", color: "#64748B", size: "sm", flex: 2 },
+                  { type: "text", text: body.email_or_line, color: "#E3346B", weight: "bold", size: "sm", flex: 4 }
+                ]
+              },
+              {
+                type: "box",
+                layout: "horizontal",
+                contents: [
+                  { type: "text", text: "ระดับประเมิน:", color: "#64748B", size: "sm", flex: 2 },
+                  { type: "text", text: `${body.result_level} (${body.score}/40 คะแนน)`, color: themeColor, weight: "bold", size: "sm", flex: 4 }
+                ]
+              }
+            ]
+          },
+          footer: {
+            type: "box",
+            layout: "vertical",
+            contents: [
+              {
+                type: "button",
+                style: "primary",
+                color: "#4044A5",
+                action: {
+                  type: "uri",
+                  label: "เปิดดูบน Choomcham CRM",
+                  uri: "https://choomcham.pages.dev/admin/crm"
                 }
-              ]
-            },
-            body: {
-              type: "box",
-              layout: "vertical",
-              spacing: "md",
-              contents: [
-                {
-                  type: "box",
-                  layout: "horizontal",
-                  contents: [
-                    { type: "text", text: "บริษัท:", color: "#64748B", size: "sm", flex: 2 },
-                    { type: "text", text: body.company, color: "#0F172A", weight: "bold", size: "sm", flex: 4 }
-                  ]
-                },
-                {
-                  type: "box",
-                  layout: "horizontal",
-                  contents: [
-                    { type: "text", text: "ผู้ติดต่อ:", color: "#64748B", size: "sm", flex: 2 },
-                    { type: "text", text: `${body.name} (${body.position})`, color: "#0F172A", size: "sm", flex: 4 }
-                  ]
-                },
-                {
-                  type: "box",
-                  layout: "horizontal",
-                  contents: [
-                    { type: "text", text: "ติดต่อ:", color: "#64748B", size: "sm", flex: 2 },
-                    { type: "text", text: body.email_or_line, color: "#E3346B", weight: "bold", size: "sm", flex: 4 }
-                  ]
-                },
-                {
-                  type: "box",
-                  layout: "horizontal",
-                  contents: [
-                    { type: "text", text: "ระดับประเมิน:", color: "#64748B", size: "sm", flex: 2 },
-                    { type: "text", text: `${body.result_level} (${body.score}/40 คะแนน)`, color: themeColor, weight: "bold", size: "sm", flex: 4 }
-                  ]
-                }
-              ]
-            },
-            footer: {
-              type: "box",
-              layout: "vertical",
-              contents: [
-                {
-                  type: "button",
-                  style: "primary",
-                  color: "#4044A5",
-                  action: {
-                    type: "uri",
-                    label: "เปิดดูบน Choomcham CRM",
-                    uri: "https://choomcham.pages.dev/admin/crm"
-                  }
-                }
-              ]
-            }
+              }
+            ]
           }
-        };
+        }
+      };
 
+      if (isValidTargetUser) {
+        // Direct Push to specific Admin/User ID
         await fetch("https://api.line.me/v2/bot/message/push", {
           method: "POST",
           headers: {
@@ -189,21 +191,17 @@ export async function onRequestPost(context: { request: Request; env: any }) {
           })
         }).catch(err => console.error("Edge LINE Push Error:", err));
       } else {
-        const textMsg = `🧟 [Lead ใหม่ - Choomcham House]
-👤 ผู้ติดต่อ: ${body.name} (${body.position})
-🏢 บริษัท: ${body.company}
-📞 ติดต่อ: ${body.email_or_line}
-📊 ผลลัพธ์: ${body.result_level} (${body.score}/40 คะแนน)
-👉 ดูรายละเอียดบน CRM: https://choomcham.pages.dev/admin/crm`;
-
-        await fetch("https://notify-api.line.me/api/notify", {
+        // Broadcast to followers of LINE OA
+        await fetch("https://api.line.me/v2/bot/message/broadcast", {
           method: "POST",
           headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Type": "application/json",
             Authorization: `Bearer ${lineChannelToken}`,
           },
-          body: new URLSearchParams({ message: `\n${textMsg}` }).toString(),
-        }).catch(err => console.error("Edge LINE Notify Error:", err));
+          body: JSON.stringify({
+            messages: [flexMessage]
+          })
+        }).catch(err => console.error("Edge LINE Broadcast Error:", err));
       }
     }
 

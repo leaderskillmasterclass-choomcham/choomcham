@@ -217,8 +217,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
     const answersStr = formData.get("answers") as string;
     const answers = answersStr ? JSON.parse(answersStr) : [];
 
-    // Save lead to Database (Supabase)
-    const dbResult = await saveLeadToSupabase(null, {
+    const leadPayload = {
       name,
       company,
       position,
@@ -227,28 +226,32 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
       score,
       result_level,
       answers
-    });
+    };
 
-    // Send email alert to admin (Resend)
-    await sendEmailNotification(null, {
-      name,
-      company,
-      position,
-      email_or_line,
-      team_size,
-      score,
-      result_level
-    });
+    // 1. Try sending through Cloudflare Serverless Edge API (/api/lead)
+    let apiSent = false;
+    let dbResult: any = null;
+    try {
+      const edgeRes = await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(leadPayload)
+      });
+      if (edgeRes.ok) {
+        const edgeJson = await edgeRes.json();
+        dbResult = edgeJson.lead;
+        apiSent = true;
+      }
+    } catch (edgeErr) {
+      console.warn("Edge /api/lead fetch failed, falling back to direct client services:", edgeErr);
+    }
 
-    // Send LINE alert to admin (LINE Notify)
-    await sendLineNotification(null, {
-      name,
-      company,
-      position,
-      email_or_line,
-      score,
-      result_level
-    });
+    // 2. Client fallback if edge endpoint not reachable in static dev
+    if (!apiSent) {
+      dbResult = await saveLeadToSupabase(null, leadPayload);
+      await sendEmailNotification(null, leadPayload);
+      await sendLineNotification(null, leadPayload);
+    }
 
     return { success: true, dbResult };
   } catch (error: any) {

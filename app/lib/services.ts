@@ -150,8 +150,9 @@ export async function sendEmailNotification(context: any, lead: {
   answers?: number[];
 }) {
   const resendApiKey = getEnvVar(context, "RESEND_API_KEY");
-  const notificationEmail = getEnvVar(context, "NOTIFICATION_EMAIL") || "owner@choomcham.house";
-  const senderEmail = getEnvVar(context, "SENDER_EMAIL") || "noreply@choomcham.house";
+  const notificationEmail = getEnvVar(context, "NOTIFICATION_EMAIL") || "leaderskillmasterclass@gmail.com";
+  const senderEmail = getEnvVar(context, "SENDER_EMAIL") || "onboarding@resend.dev";
+  const fromAddress = senderEmail.includes("choomcham.house") ? "onboarding@resend.dev" : senderEmail;
 
   const resultInfo = getResultLevelInfo(lead.score);
   const emailSubject = `🧟 [New Lead] Zombie Quiz - ${lead.name} (${lead.company}) [${lead.result_level}]`;
@@ -219,7 +220,7 @@ export async function sendEmailNotification(context: any, lead: {
   try {
     const resend = new Resend(resendApiKey);
     const result = await resend.emails.send({
-      from: `Choomcham Platform <${senderEmail}>`,
+      from: `Choomcham Platform <${fromAddress}>`,
       to: notificationEmail,
       subject: emailSubject,
       html: emailHtml,
@@ -366,9 +367,10 @@ export async function sendLineNotification(context: any, lead: {
   }
 
   try {
-    // If LINE OA Messaging API is configured
-    if (lineTargetUserId) {
-      const flexMessage = generateLineFlexMessage(lead);
+    const isValidTargetUser = lineTargetUserId && !lineTargetUserId.includes("PASTE_");
+    const flexMessage = generateLineFlexMessage(lead);
+
+    if (isValidTargetUser) {
       const res = await fetch("https://api.line.me/v2/bot/message/push", {
         method: "POST",
         headers: {
@@ -383,23 +385,19 @@ export async function sendLineNotification(context: any, lead: {
       const data: any = await res.json();
       return { success: res.ok, data };
     } else {
-      // Fallback to text Notify endpoint
-      const textMsg = `🧟 [Lead ใหม่ - Choomcham House]
-👤 ผู้ติดต่อ: ${lead.name} (${lead.position})
-🏢 บริษัท: ${lead.company}
-📞 ติดต่อ: ${lead.email_or_line}
-📊 ผลลัพธ์: ${lead.result_level} (${lead.score}/40 คะแนน)
-👉 ดูรายละเอียดบน CRM: https://choomcham.pages.dev/admin/crm`;
-
-      const response = await fetch("https://notify-api.line.me/api/notify", {
+      // Broadcast fallback so followers of LINE OA receive it
+      const res = await fetch("https://api.line.me/v2/bot/message/broadcast", {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          "Content-Type": "application/json",
           Authorization: `Bearer ${lineChannelToken}`,
         },
-        body: new URLSearchParams({ message: `\n${textMsg}` }).toString(),
+        body: JSON.stringify({
+          messages: [flexMessage]
+        })
       });
-      return { success: response.ok, simulated: false };
+      const data: any = await res.json();
+      return { success: res.ok, data };
     }
   } catch (err: any) {
     console.error("[LINE Service] Error sending notification:", err);
