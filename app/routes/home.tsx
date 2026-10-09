@@ -1,6 +1,9 @@
 import { useFetcher } from "react-router";
 import type { Route } from "./+types/home";
 import { useState, useEffect } from "react";
+import { SiteHeader } from "~/components/layout/SiteHeader";
+import { HomeHero } from "~/components/sections/HomeHero";
+import { getResultLevelInfo } from "~/lib/diagnostic";
 import { 
   Users, Award, Sparkles, Send, 
   CheckCircle, ArrowRight, Zap, Target, BookOpen, AlertCircle,
@@ -9,7 +12,6 @@ import {
   Menu, X, FileText, Layers, ShieldCheck, Image as ImageIcon, Maximize2,
   TrendingUp, MessageCircle, Eye, Star, UserCheck, Shield, ChevronDown
 } from "lucide-react";
-import { saveLeadToSupabase, sendEmailNotification, sendLineNotification } from "~/lib/services";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -556,32 +558,17 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
       }
     };
 
-    // 1. Try sending through Cloudflare Serverless Edge API (/api/lead)
-    let apiSent = false;
-    let dbResult: any = null;
-    try {
-      const edgeRes = await fetch("/api/lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(leadPayload)
-      });
-      if (edgeRes.ok) {
-        const edgeJson = await edgeRes.json();
-        dbResult = edgeJson.lead;
-        apiSent = true;
-      }
-    } catch (edgeErr) {
-      console.warn("Edge /api/lead fetch failed, falling back to direct client services:", edgeErr);
+    // Notifications and persistence run only on the server.
+    const response = await fetch("/api/lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(leadPayload),
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success || !data.lead?.id || String(data.lead.id).startsWith("edge-")) {
+      return { success: false, formType, error: "ยังบันทึกข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" };
     }
-
-    // 2. Client fallback if edge endpoint not reachable in static dev
-    if (!apiSent) {
-      dbResult = await saveLeadToSupabase(null, leadPayload);
-      await sendEmailNotification(null, leadPayload);
-      await sendLineNotification(null, leadPayload);
-    }
-
-    return { success: true, formType, dbResult };
+    return { success: true, formType, dbResult: data.lead };
   } catch (error: any) {
     console.error("Action error:", error);
     return { success: false, error: error.message || "Failed to process lead submission" };
@@ -595,10 +582,14 @@ export default function Home() {
   const [quizSubmittedOverride, setQuizSubmittedOverride] = useState(false);
   const hasSubmittedQuiz = !quizSubmittedOverride && Boolean(fetcher.data && (fetcher.data as any).success && (fetcher.data as any).formType === "quiz");
   const hasSubmittedContact = Boolean(fetcher.data && (fetcher.data as any).success && (fetcher.data as any).formType === "contact");
+  useEffect(() => {
+    if (fetcher.data && (fetcher.data as any).success && (fetcher.data as any).formType === "quiz") {
+      setQuizSubmittedOverride(false);
+    }
+  }, [fetcher.data]);
 
   // Contact Form Tab State
   const [inquiryType, setInquiryType] = useState<"consultation" | "proposal" | "program">("consultation");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // FAQ open/close state (open multiple or single)
   const [openFaqId, setOpenFaqId] = useState<number | null>(1);
@@ -612,7 +603,7 @@ export default function Home() {
 
   // Result Mapping
   const getResultLevel = (score: number) => {
-    if (score >= 34) {
+    if (score >= 31) {
       return { 
         level: "ALIVE", 
         title: "ALIVE - องค์กรมีพลังชีวิตและวัฒนธรรมเข้มแข็ง", 
@@ -621,7 +612,7 @@ export default function Home() {
         desc: "องค์กรของคุณมีพลังชีวิตที่ดีเยี่ยม คนมี Ownership กล้าแสดงความเห็น และทีมร่วมมือร่วมใจกันสร้างสรรค์สิ่งใหม่ จุดท้าทายคือจะรักษามาตรฐานและช่วยให้องค์กรขยายสเกลโดยไม่สูญเสียจิตวิญญาณแห่งความเป็นมนุษย์ไปอย่างไร" 
       };
     }
-    if (score >= 26) {
+    if (score >= 23) {
       return { 
         level: "TIRED", 
         title: "TIRED - เริ่มมีสัญญาณความเหนื่อยสะสมและ Silo แอบแฝง", 
@@ -630,7 +621,7 @@ export default function Home() {
         desc: "องค์กรเริ่มมีสัญญาณความเฉื่อยและการสะสมความเหนื่อยล้า พนักงานยังคงทำงานได้ดีตาม KPI แต่เริ่มสูญเสียพลังสร้างสรรค์และความคิดริเริ่ม หากปล่อยทิ้งไว้โดยไม่เติมนวัตกรรมหรือการดูแลคน มีความเสี่ยงที่จะไหลลึกไปสู่ระดับ Faded" 
       };
     }
-    if (score >= 18) {
+    if (score >= 15) {
       return { 
         level: "FADED", 
         title: "FADED - พลังของคนเริ่มจางหาย ต่างคนต่างทำ", 
@@ -682,6 +673,7 @@ export default function Home() {
       const finalScore = newAnswers.reduce((sum, val) => sum + val, 0);
       setLastCalculatedScore(finalScore);
       setShowLeadForm(true);
+      requestAnimationFrame(() => document.getElementById("quiz-result-title")?.focus());
     }
   };
 
@@ -706,284 +698,286 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-white text-brand-black font-sans selection:bg-brand-pink selection:text-brand-white relative">
+    <div className="home-page min-h-screen bg-brand-white text-brand-black font-sans selection:bg-brand-pink selection:text-brand-white relative">
       
-      {/* HEADER & NAVIGATION */}
-      <header className="sticky top-0 z-50 glass-panel border-b border-brand-border/60">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
-          <a href="#" className="flex items-center gap-3 group">
-            <img 
-              src="/chumcham.png" 
-              alt="Choomcham Branding Logo" 
-              className="w-10 h-10 rounded-2xl shadow-xs object-contain group-hover:scale-105 group-hover:rotate-6 transition-all duration-300 border border-brand-purple/15 bg-white p-1" 
-            />
-            <div className="flex flex-col">
-              <span className="font-display font-black text-lg sm:text-xl tracking-tight text-brand-purple leading-none group-hover:text-brand-pink transition-colors">
-                ชุ่มฉ่ำ
-              </span>
-              <span className="font-display font-bold text-[9px] sm:text-[10px] tracking-widest text-brand-pink uppercase leading-tight mt-0.5">
-                CHOOMCHAM HOUSE
-              </span>
-            </div>
-          </a>
-
-          {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center gap-5 text-sm font-semibold tracking-wide text-brand-gray font-display">
-            <a href="#authentic-org" className="hover:text-brand-purple transition-colors">องค์กรตัวจริง™</a>
-            <a href="#levels" className="hover:text-brand-purple transition-colors">5 ระดับการเติบโต</a>
-            <a href="#programs" className="hover:text-brand-purple transition-colors">หลักสูตร & โปรแกรม</a>
-            <a 
-              href="#zombie-check" 
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-50 text-brand-pink font-bold border border-brand-pink/30 hover:bg-brand-pink hover:text-white transition-all shadow-xs"
-            >
-              <span>🧟</span>
-              <span>Zombie Check™</span>
-            </a>
-            <a href="#experience" className="hover:text-brand-purple transition-colors">ประสบการณ์ & ลูกค้า</a>
-            <a href="#faq" className="hover:text-brand-purple transition-colors">FAQ</a>
-            <a href="#about" className="hover:text-brand-purple transition-colors">เกี่ยวกับเรา</a>
-          </nav>
-
-          {/* Desktop Action Buttons */}
-          <div className="hidden sm:flex items-center gap-2.5">
-            <a 
-              href="#zombie-check" 
-              className="px-4 py-2 rounded-pill border border-brand-pink text-brand-pink hover:bg-brand-pink/10 font-display font-bold text-xs tracking-wide transition-all duration-300 flex items-center gap-1.5"
-            >
-              <span>🧟</span>
-              <span>เช็คสภาวะ Zombie</span>
-            </a>
-            <a 
-              href="#contact" 
-              className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-pill bg-brand-pink text-brand-white font-display font-semibold text-xs tracking-wide hover:shadow-[0_4px_14px_rgba(227,52,107,0.35)] hover:-translate-y-0.5 transition-all duration-300 block text-center uppercase"
-            >
-              ปรึกษาโจทย์องค์กร
-            </a>
-          </div>
-
-          {/* Mobile Actions & Hamburger Toggle */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <a 
-              href="#zombie-check" 
-              className="px-3 py-1.5 rounded-pill bg-brand-pink/10 text-brand-pink border border-brand-pink/30 font-display font-bold text-[11px] tracking-wide flex items-center gap-1"
-            >
-              <span>🧟</span>
-              <span>Zombie Check</span>
-            </a>
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-brand-purple transition-colors border border-purple-200/60"
-              aria-label="Toggle Navigation Menu"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5 text-brand-pink" /> : <Menu className="w-5 h-5 text-brand-purple" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Slide-down Sub-Menu */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-brand-border/60 bg-white/98 backdrop-blur-xl px-6 py-6 shadow-2xl animate-in slide-in-from-top-4 duration-200">
-            <div className="space-y-4 max-w-md mx-auto">
-              <a
-                href="#zombie-check"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-pink-50 to-purple-50 border border-brand-pink/20 text-sm font-bold text-brand-pink"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🧟</span>
-                  <span>Zombie Organization Check™ (แบบประเมินฟรี)</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-brand-pink" />
-              </a>
-              <a
-                href="#authentic-org"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
-              >
-                <span>1. องค์กรตัวจริง™ (Framework)</span>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
-              </a>
-              <a
-                href="#levels"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
-              >
-                <span>2. 5 ระดับการเติบโต (Level 1-5)</span>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
-              </a>
-              <a
-                href="#programs"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
-              >
-                <span>3. หลักสูตร From Zombie to Living Org</span>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
-              </a>
-              <a
-                href="#experience"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
-              >
-                <span>4. ประสบการณ์ & ลูกค้าที่ไว้วางใจ</span>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
-              </a>
-              <a
-                href="#faq"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
-              >
-                <span>5. คำถามที่พบบ่อย (FAQ)</span>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
-              </a>
-              <a
-                href="#about"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
-              >
-                <span>6. เกี่ยวกับ Choomcham House</span>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
-              </a>
-              <div className="pt-4 border-t border-slate-100 space-y-2">
-                <a
-                  href="#contact"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full py-3 rounded-xl bg-brand-pink text-white font-bold text-center text-xs flex items-center justify-center gap-2 shadow-md uppercase tracking-wider"
-                >
-                  <span>ปรึกษาและออกแบบหลักสูตร</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </div>
-          </div>
-        )}
-      </header>
+      <a className="skip-link" href="#main-content">ข้ามไปเนื้อหาหลัก</a>
+      <SiteHeader />
 
       {/* Main Container */}
-      <main className="relative z-10">
+      <main id="main-content" className="relative z-10">
 
         {/* ========================================================
             SECTION 1: HERO / องค์กรตัวจริง™
         ======================================================== */}
-        <section id="authentic-org" className="relative py-20 lg:py-28 px-6 bg-gradient-to-b from-[#323689] via-brand-purple to-[#2A2D73] text-brand-white overflow-hidden">
-          {/* Decorative ambient glows */}
-          <div className="absolute top-10 left-1/4 w-80 h-80 bg-brand-yellow/15 rounded-full blur-[100px] pointer-events-none animate-pulse-glow"></div>
-          <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-brand-pink/15 rounded-full blur-[120px] pointer-events-none animate-float"></div>
+        <HomeHero />
 
-          <div className="max-w-5xl mx-auto text-center relative z-10 flex flex-col items-center">
+        {/* ========================================================
+            SECTION 9: INTERACTIVE EVALUATION (ZOMBIE CHECK™)
+        ======================================================== */}
+        <section id="zombie-check" className="py-20 lg:py-28 px-6 bg-slate-900 text-white relative overflow-hidden">
+          {/* Ambient Glows */}
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand-pink/10 rounded-full blur-[120px] pointer-events-none"></div>
+          <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-brand-purple/20 rounded-full blur-[120px] pointer-events-none"></div>
+
+          <div className="max-w-4xl mx-auto relative z-10">
             
-            {/* Logo Avatar */}
-            <div className="mb-6 group">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-white p-2.5 shadow-2xl shadow-black/30 ring-4 ring-white/20 group-hover:scale-105 transition-transform duration-300 mx-auto flex items-center justify-center">
-                <img 
-                  src="/chumcham.png" 
-                  alt="Choomcham Branding" 
-                  className="w-full h-full object-contain drop-shadow-sm group-hover:rotate-6 transition-transform duration-500" 
-                />
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-pill bg-brand-pink/20 border border-brand-pink/30 text-brand-pink text-xs font-bold uppercase tracking-widest mb-4 font-display">
+                <span>🧟</span>
+                <span>ZOMBIE ORGANIZATION CHECK™ · THE AUTHENTIC DIAGNOSTIC</span>
               </div>
-            </div>
-
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-pill border border-brand-pink/30 bg-brand-pink/10 text-brand-pink text-xs sm:text-sm font-bold tracking-widest mb-6 font-display uppercase">
-              <Sparkles className="w-4 h-4 text-brand-pink" />
-              THE AUTHENTIC ORGANIZATION
-            </div>
-
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight leading-tight mb-3 font-display">
-              องค์กรตัวจริง™
-            </h1>
-            <div className="text-xl sm:text-3xl font-extrabold text-brand-yellow tracking-wider mb-6 uppercase font-display">
-              THE AUTHENTIC ORGANIZATION
-            </div>
-
-            <div className="inline-block px-5 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white font-display font-semibold text-base sm:text-lg mb-8">
-              ภายใต้แนวคิด <strong className="text-brand-pink font-bold">“ตัวจริงต้องมีที่ยืน”</strong>
-            </div>
-
-            {/* Core Truth Card */}
-            <div className="w-full max-w-3xl p-6 sm:p-8 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 text-center shadow-2xl mb-10">
-              <p className="text-base sm:text-xl font-medium text-white/90 leading-relaxed">
-                เพราะองค์กรที่แข็งแรง <br className="hidden sm:inline" />
-                ไม่ได้เกิดจากการมี <strong className="text-white">“คนเก่ง”</strong> เยอะที่สุด
+              <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4 font-sans">
+                องค์กรของคุณกำลังเป็นซอมบี้แค่ไหน? 🧟
+              </h2>
+              <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+                ตอบ 10 คำถามเพื่อวัดสภาวะจริง ค้นพบสัญญาณความเฉื่อยชาที่ซ่อนอยู่ และรับแนวทางฟื้นฟูทีมจากข้างในสู่ <strong>Living Organization</strong>
               </p>
-              
-              <div className="mt-4 pt-4 border-t border-white/15 text-sm sm:text-base text-amber-200 leading-relaxed font-sans">
-                แต่เกิดจากการทำให้คนเก่ง <strong className="text-white">รู้ว่าตัวเองมีคุณค่าอะไร</strong> · <strong className="text-white">สื่อสารกับคนอื่นเป็น</strong> · <strong className="text-white">ทำงานร่วมกันเป็น</strong> · <strong className="text-white">เติบโตเป็นผู้นำ</strong> · และร่วมกันสร้างวัฒนธรรมที่องค์กรเชื่อมั่น
-              </div>
             </div>
 
-            {/* Workplace Reality Check (5 Bullets) */}
-            <div className="w-full max-w-4xl text-left mb-10">
-              <div className="text-xs sm:text-sm font-bold tracking-widest text-slate-300 uppercase mb-4 text-center font-display">
-                องค์กรจำนวนมากมีคนเก่งอยู่แล้ว แต่ศักยภาพอาจยังไม่ได้ถูกนำออกมาใช้อย่างเต็มที่:
-              </div>
+            {/* Quiz Flow Component */}
+            {!quizStarted && !showLeadForm && !hasSubmittedQuiz && (
+              <div className="p-8 sm:p-12 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl text-center shadow-2xl">
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-brand-pink/30 to-brand-purple/30 text-brand-pink flex items-center justify-center mx-auto mb-6 border border-white/15 shadow-inner text-3xl">
+                  🧟
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-white mb-3 font-display">
+                  พร้อมสำรวจดัชนีสุขภาพของทีมคุณแล้วหรือยัง?
+                </h3>
+                <p className="text-sm sm:text-base text-slate-300 max-w-lg mx-auto mb-8 leading-relaxed">
+                  ใช้เวลาประมาณ 3 นาที เพื่อค้นพบว่าองค์กรของคุณอยู่ในสภาวะใด จาก 4 ระดับ:
+                </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {[
-                  { title: "บางคนเก่ง แต่ไม่กล้าแสดงออก", desc: "ขาดพื้นที่ปลอดภัยและขาดความมั่นใจในคุณค่าของตนเอง" },
-                  { title: "บางคนเก่ง แต่สื่อสารไม่เป็น", desc: "สิ่งที่คิดไม่สามารถส่งไปถึงเพื่อนร่วมงานหรือทีมได้อย่างมีพลัง" },
-                  { title: "บางทีมมีคนเก่งหลายคน แต่ทำงานร่วมกันไม่ได้", desc: "ต่างคนต่างทำจนเกิดกำแพง Silo และขาดเป้าหมายร่วม" },
-                  { title: "บางคนขึ้นเป็นหัวหน้า แต่ยังไม่รู้ว่าจะ “นำคน” อย่างไร", desc: "เก่งงานแต่ยังขาดทักษะการสร้างแรงบันดาลใจและบริหารใจทีม" },
-                  { title: "บางองค์กรมี Vision ที่ดี แต่คนข้างในไม่ได้ใช้ชีวิตไปกับมันจริง ๆ", desc: "ค่านิยมอยู่แค่บนผนังแต่ไม่ปรากฏในพฤติกรรมการทำงานทุกวัน" }
-                ].map((item, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`p-4 sm:p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 hover:border-brand-pink/50 transition-all duration-300 ${idx === 4 ? "sm:col-span-2 lg:col-span-1" : ""}`}
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <div className="w-2 h-2 rounded-full bg-brand-pink shrink-0 mt-1.5"></div>
-                      <div>
-                        <h2 className="font-bold text-sm text-white leading-snug mb-1 font-display">
-                          {item.title}
-                        </h2>
-                        <p className="text-xs text-white/70 leading-relaxed">
-                          {item.desc}
-                        </p>
-                      </div>
+                {/* 4 Levels Preview Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto mb-8 text-left">
+                  <div className="p-3.5 rounded-2xl bg-white/5 border border-pink-500/30">
+                    <span className="text-[10px] font-bold text-pink-400 block font-display">10–14 คะแนน</span>
+                    <span className="text-xs font-bold text-white block mt-0.5">🧟 ZOMBIE</span>
+                    <span className="text-[11px] text-slate-400 block mt-1">หมดไฟ ไร้วิญญาณ</span>
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-white/5 border border-blue-500/30">
+                    <span className="text-[10px] font-bold text-blue-400 block font-display">15–22 คะแนน</span>
+                    <span className="text-xs font-bold text-white block mt-0.5">💨 FADED</span>
+                    <span className="text-[11px] text-slate-400 block mt-1">เริ่มเงียบ ต่างคนต่างทำ</span>
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-white/5 border border-amber-500/30">
+                    <span className="text-[10px] font-bold text-amber-400 block font-display">23–30 คะแนน</span>
+                    <span className="text-xs font-bold text-white block mt-0.5">⚠️ TIRED</span>
+                    <span className="text-[11px] text-slate-400 block mt-1">เหนื่อยสะสม ขาดไฟใหม่</span>
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-white/5 border border-emerald-500/30">
+                    <span className="text-[10px] font-bold text-emerald-400 block font-display">31–40 คะแนน</span>
+                    <span className="text-xs font-bold text-white block mt-0.5">✨ ALIVE</span>
+                    <span className="text-[11px] text-slate-400 block mt-1">องค์กรตัวจริงมีพลัง</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setQuizStarted(true)}
+                  className="px-10 py-4 rounded-pill bg-gradient-to-r from-brand-pink to-rose-600 text-white font-display font-bold text-base hover:shadow-xl hover:shadow-brand-pink/40 hover:scale-105 transition-all cursor-pointer inline-flex items-center gap-2"
+                >
+                  <span>🧟 เริ่มทำแบบประเมิน Zombie Check™</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* In-Progress Quiz Questions */}
+            {quizStarted && !showLeadForm && !hasSubmittedQuiz && (
+              <div className="p-6 sm:p-10 rounded-3xl bg-white/10 border border-white/15 backdrop-blur-xl animate-in fade-in duration-300">
+                <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-white/10 text-xs font-display">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-1 rounded-full bg-brand-pink/20 text-brand-pink font-bold border border-brand-pink/30">
+                      คำถาม {currentQIndex + 1} / {QUIZ_QUESTIONS.length}
+                    </span>
+                    <span className="text-slate-400 hidden sm:inline">Zombie Organization Index</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-slate-300 font-medium">ความคืบหน้า {Math.round(((currentQIndex + 1) / QUIZ_QUESTIONS.length) * 100)}%</span>
+                    <div className="w-24 sm:w-32 h-2 bg-white/20 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-brand-pink transition-all duration-300"
+                        style={{ width: `${((currentQIndex + 1) / QUIZ_QUESTIONS.length) * 100}%` }}
+                      ></div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            {/* Transition Statement */}
-            <div className="w-full max-w-3xl p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-brand-pink/30 via-purple-600/30 to-brand-yellow/20 border border-white/20 backdrop-blur-xl shadow-xl text-center">
-              <p className="text-sm sm:text-base font-semibold text-white/90 mb-2">
-                ชุ่มฉ่ำจึงออกแบบหลักสูตร <strong className="text-amber-300 font-bold">“องค์กรตัวจริง™”</strong>
-              </p>
-              <div className="text-lg sm:text-2xl font-black text-white font-sans">
-                เพื่อพัฒนาคนจาก <span className="text-brand-yellow">“ข้างใน”</span> ไปสู่การเปลี่ยนแปลงระดับ <span className="text-brand-pink">“องค์กร”</span>
-              </div>
-              <div className="text-xs sm:text-sm font-bold text-slate-300 mt-2 font-display uppercase tracking-wider">
-                ผ่าน 5 ระดับการเติบโต (5 Levels of Growth)
-              </div>
-            </div>
+                <h3 aria-live="polite" className="text-lg sm:text-2xl font-extrabold text-white mb-6 leading-relaxed">
+                  {QUIZ_QUESTIONS[currentQIndex].question}
+                </h3>
 
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-center gap-3.5 mt-8 w-full sm:w-auto">
-              <a 
-                href="#zombie-check" 
-                className="w-full sm:w-auto px-8 py-4 rounded-pill bg-gradient-to-r from-brand-pink to-rose-600 text-white font-display font-bold text-base shadow-xl shadow-brand-pink/30 hover:shadow-brand-pink/50 hover:scale-102 transition-all duration-300 flex items-center justify-center gap-2"
-              >
-                <span>🧟 ทำแบบประเมิน Zombie Check™ (ฟรี)</span>
-                <ArrowRight className="w-4 h-4" />
-              </a>
-              <a 
-                href="#programs" 
-                className="w-full sm:w-auto px-6 py-4 rounded-pill bg-white/15 hover:bg-white/25 border border-white/25 text-white font-display font-semibold text-sm transition-colors flex items-center justify-center gap-2"
-              >
-                <span>หลักสูตร & 5 ระดับการเติบโต</span>
-                <ChevronRight className="w-4 h-4 text-slate-300" />
-              </a>
-              <a 
-                href="#contact" 
-                className="w-full sm:w-auto px-6 py-4 rounded-pill bg-white text-brand-purple hover:bg-slate-100 font-display font-bold text-sm shadow-md transition-all duration-300 flex items-center justify-center gap-2"
-              >
-                <span>ปรึกษาโจทย์องค์กร</span>
-              </a>
-            </div>
+                <div className="space-y-3">
+                  {QUIZ_QUESTIONS[currentQIndex].answers.map((ans, aIdx) => (
+                    <button
+                      key={aIdx}
+                      type="button"
+                      onClick={() => handleAnswerSelect(ans.score)}
+                      className="w-full p-4.5 rounded-2xl bg-white/5 hover:bg-white/15 border border-white/10 hover:border-brand-pink/50 text-left text-xs sm:text-sm text-slate-200 hover:text-white transition-all duration-200 flex items-center justify-between gap-3 group cursor-pointer"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="w-6 h-6 rounded-full bg-white/10 group-hover:bg-brand-pink group-hover:text-white flex items-center justify-center text-xs font-bold text-slate-300 shrink-0 mt-0.5 transition-colors font-display">
+                          {String.fromCharCode(65 + aIdx)}
+                        </span>
+                        <span className="leading-relaxed">{ans.text}</span>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-white/30 group-hover:text-brand-pink shrink-0 transition-colors" />
+                    </button>
+                  ))}
+                </div>
+
+                {currentQIndex > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentQIndex(currentQIndex - 1);
+                      setQuizAnswers(quizAnswers.slice(0, -1));
+                    }}
+                    className="mt-6 text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1 font-display"
+                  >
+                    <ChevronLeft className="w-4 h-4" /> ย้อนกลับไปข้อก่อนหน้า
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Completed Assessment Result Display */}
+            {showLeadForm && (
+              <div className="p-8 sm:p-12 rounded-3xl bg-white text-slate-900 shadow-xs text-center animate-in zoom-in-95 duration-300">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold mb-3 font-display">
+                  <span>📊</span>
+                  <span>คะแนนรวม: {currentScore} / 40 คะแนน</span>
+                </div>
+
+                <h3 tabIndex={-1} id="quiz-result-title" className="text-2xl sm:text-3xl font-extrabold mb-4 font-display text-slate-900">
+                  {resultInfo.title}
+                </h3>
+
+                <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-left max-w-2xl mx-auto mb-8">
+                  <p className="text-sm sm:text-base text-slate-700 leading-relaxed mb-4">
+                    {getResultLevelInfo(currentScore).description}
+                  </p>
+                  <div className="p-4 rounded-xl bg-purple-50 border border-purple-100 text-xs sm:text-sm text-brand-purple font-medium">
+                    💡 <strong>หลักสูตรแนะนำสำหรับสภาวะนี้:</strong> หลักสูตร <em>From Zombie to Living Organization</em> (เน้นโมดูล {resultInfo.level === "ZOMBIE" ? "REBORN PEOPLE & ALIVE TEAM" : resultInfo.level === "FADED" ? "ALIVE TEAM & REBORN LEADER" : resultInfo.level === "TIRED" ? "REBORN LEADER & LIVING CULTURE" : "LIVING CULTURE & BRAND DNA"})
+                  </div>
+                </div>
+
+                <p className="text-sm text-slate-500 mb-6">ผลนี้สะท้อนมุมมองของผู้ตอบ ณ เวลานี้ ใช้เป็นจุดเริ่มต้นในการพูดคุยกับทีม</p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <a
+                    href="#contact"
+                    className="w-full sm:w-auto px-8 py-3.5 rounded-pill bg-brand-pink text-white font-display font-bold text-sm shadow-md hover:shadow-lg transition-all"
+                  >
+                    ปรึกษาทีมชุ่มฉ่ำเพื่อวางแผนปลดล็อกทีม
+                  </a>
+                  <button
+                    type="button"
+                    onClick={restartQuiz}
+                    className="w-full sm:w-auto px-6 py-3.5 rounded-pill bg-slate-100 hover:bg-slate-200 text-slate-700 font-display font-semibold text-sm transition-colors cursor-pointer"
+                  >
+                    ทำแบบประเมินอีกครั้ง
+                  </button>
+                </div>
+              </div>
+            )}
+
+
+            {hasSubmittedQuiz && <p className="mt-6 p-4 rounded-xl bg-white/10 text-white" role="status">ได้รับคำขอติดต่อแล้ว ทีมชุ่มฉ่ำจะพูดคุยกับคุณผ่านช่องทางที่แจ้งไว้</p>}
+
+            {/* Assessment Lead Submission Form */}
+            {showLeadForm && !hasSubmittedQuiz && (
+              <div className="p-6 sm:p-10 rounded-3xl bg-white/10 border border-white/15 backdrop-blur-xl animate-in fade-in duration-300">
+                <div className="text-center mb-8">
+                  <div className="inline-block px-3.5 py-1 rounded-full bg-amber-400/20 text-amber-300 text-xs font-bold mb-2 font-display border border-amber-400/30">
+                    ✓ ประเมินครบทั้ง 10 ข้อเรียบร้อยแล้ว
+                  </div>
+                  <h3 className="text-xl sm:text-3xl font-extrabold text-white font-sans">
+                    อยากเปลี่ยน Insight เป็นแผนพัฒนาทีม?
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-2">
+                    ฝากช่องทางติดต่อไว้ให้ทีมชุ่มฉ่ำพูดคุยถึงโจทย์และแนวทางที่เหมาะกับองค์กรของคุณ
+                  </p>
+                </div>
+
+                <fetcher.Form method="post" className="space-y-4 max-w-lg mx-auto">
+                  {fetcher.data && !(fetcher.data as any).success && <p role="alert" className="text-rose-200">{(fetcher.data as any).error || "ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่"}</p>}
+                  <input type="hidden" name="form_type" value="quiz" />
+                  <input type="hidden" name="score" value={currentScore} />
+                  <input type="hidden" name="result_level" value={resultInfo.level} />
+                  <input type="hidden" name="answers" value={JSON.stringify(quizAnswers)} />
+
+                  <div>
+                    <label htmlFor="lead-field-1" className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 font-display">
+                      ชื่อ-นามสกุลผู้ทำแบบประเมิน *
+                    </label>
+                    <input id="lead-field-1"
+                      type="text"
+                      name="name"
+                      required
+                      placeholder="เช่น คุณกฤษฎา / ผู้บริหาร / HR Manager"
+                      className="w-full bg-white/10 border border-white/20 focus:border-brand-pink rounded-xl px-4 py-3 text-white placeholder-slate-400 outline-none text-sm"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label htmlFor="lead-field-2" className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 font-display">
+                        ชื่อองค์กร / บริษัท *
+                      </label>
+                      <input id="lead-field-2"
+                        type="text"
+                        name="company"
+                        required
+                        placeholder="ชื่อบริษัทหรือหน่วยงาน"
+                        className="w-full bg-white/10 border border-white/20 focus:border-brand-pink rounded-xl px-4 py-3 text-white placeholder-slate-400 outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="lead-field-3" className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 font-display">
+                        ตำแหน่งของคุณ
+                      </label>
+                      <input id="lead-field-3"
+                        type="text"
+                        name="position"
+                        placeholder="เช่น CEO, HRD, Team Lead"
+                        className="w-full bg-white/10 border border-white/20 focus:border-brand-pink rounded-xl px-4 py-3 text-white placeholder-slate-400 outline-none text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="lead-field-4" className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 font-display">
+                      อีเมล หรือ LINE ID สำหรับติดต่อกลับ *
+                    </label>
+                    <input id="lead-field-4"
+                      type="text"
+                      name="email_or_line"
+                      required
+                      placeholder="email@company.com หรือ Line ID"
+                      className="w-full bg-white/10 border border-white/20 focus:border-brand-pink rounded-xl px-4 py-3 text-white placeholder-slate-400 outline-none text-sm"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-4 mt-2 rounded-pill bg-brand-pink text-white font-display font-bold text-base hover:shadow-lg hover:shadow-brand-pink/40 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  >
+                    {isSubmitting ? (
+                      <span>กำลังส่งข้อมูล...</span>
+                    ) : (
+                      <span>ให้ทีมชุ่มฉ่ำติดต่อกลับ</span>
+                    )}
+                  </button>
+                </fetcher.Form>
+              </div>
+            )}
+
 
           </div>
         </section>
+
+
 
         {/* ========================================================
             SECTION 2: 5 LEVELS TO AUTHENTIC ORGANIZATION (DEEP DIVE)
@@ -1004,16 +998,16 @@ export default function Home() {
             </div>
 
             {/* 5 Levels Cards */}
-            <div className="space-y-6">
+            <div className="level-grid">
               {AUTHENTIC_LEVELS.map((lvl) => {
                 const IconComponent = lvl.icon;
                 return (
                   <div 
                     key={lvl.code}
-                    className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/90 hover:border-brand-purple/40 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row gap-6 md:gap-8 items-start relative overflow-hidden group"
+                    className="level-card p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/90 transition-all duration-300 flex flex-col gap-6 items-start relative overflow-hidden group"
                   >
                     {/* Left Step Indicator */}
-                    <div className="shrink-0 flex md:flex-col items-center gap-3">
+                    <div className="shrink-0 flex items-center gap-3">
                       <span className="text-xs font-black uppercase tracking-wider text-slate-400 font-display group-hover:text-brand-purple transition-colors">
                         {lvl.levelNumber}
                       </span>
@@ -1037,13 +1031,14 @@ export default function Home() {
                         {lvl.title}
                       </h3>
 
+                      <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                        {lvl.summary}
+                      </p>
+                      <details className="level-details"><summary>แนวคิดและผลลัพธ์ที่มุ่งหวัง</summary>
                       <p className="text-sm sm:text-base font-semibold text-brand-purple mb-2">
                         {lvl.hook}
                       </p>
 
-                      <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                        {lvl.summary}
-                      </p>
 
                       <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 mb-3">
                         <p className="text-xs sm:text-sm font-bold text-slate-800 italic">
@@ -1055,6 +1050,7 @@ export default function Home() {
                         <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
                         <span>{lvl.benefit}</span>
                       </p>
+                      </details>
                     </div>
                   </div>
                 );
@@ -1169,9 +1165,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <p className="text-xs sm:text-sm italic text-slate-600 border-l-2 border-brand-pink pl-3 py-0.5">
-                    {c.quote}
-                  </p>
+
                 </div>
               ))}
             </div>
@@ -1190,7 +1184,9 @@ export default function Home() {
 
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 {WORKSHOP_GALLERY_IMAGES.map((img, idx) => (
-                  <div 
+                  <button
+                    type="button"
+                    aria-label={`ดูภาพ ${img.title}`}
                     key={img.id}
                     onClick={() => setLightboxIndex(idx)}
                     className="group relative aspect-4/3 rounded-2xl overflow-hidden bg-slate-100 cursor-pointer shadow-xs hover:shadow-md border border-slate-200 transition-all duration-300"
@@ -1205,7 +1201,7 @@ export default function Home() {
                       <span className="text-[10px] font-bold text-amber-300 font-display">{img.category}</span>
                       <p className="text-[10px] line-clamp-1 leading-tight">{img.title}</p>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -1531,6 +1527,8 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => toggleFaq(faq.id)}
+                      aria-expanded={isOpen}
+                      aria-controls={`faq-panel-${faq.id}`}
                       className="w-full p-5 sm:p-6 text-left flex items-start justify-between gap-4 cursor-pointer"
                     >
                       <div className="flex items-start gap-3">
@@ -1553,7 +1551,7 @@ export default function Home() {
                     </button>
 
                     {isOpen && (
-                      <div className="px-5 sm:px-6 pb-6 pt-1 text-sm text-slate-700 border-t border-slate-100 leading-relaxed space-y-2 whitespace-pre-line bg-slate-50/50 animate-in fade-in duration-200">
+                      <div id={`faq-panel-${faq.id}`} className="px-5 sm:px-6 pb-6 pt-1 text-sm text-slate-700 border-t border-slate-100 leading-relaxed space-y-2 whitespace-pre-line bg-slate-50/50 animate-in fade-in duration-200">
                         <div className="font-sans text-slate-700">
                           {faq.answer}
                         </div>
@@ -1633,266 +1631,6 @@ export default function Home() {
         </section>
 
         {/* ========================================================
-            SECTION 9: INTERACTIVE EVALUATION (ZOMBIE CHECK™)
-        ======================================================== */}
-        <section id="zombie-check" className="py-20 lg:py-28 px-6 bg-slate-900 text-white relative overflow-hidden">
-          {/* Ambient Glows */}
-          <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand-pink/10 rounded-full blur-[120px] pointer-events-none"></div>
-          <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-brand-purple/20 rounded-full blur-[120px] pointer-events-none"></div>
-
-          <div className="max-w-4xl mx-auto relative z-10">
-            
-            <div className="text-center max-w-2xl mx-auto mb-12">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-pill bg-brand-pink/20 border border-brand-pink/30 text-brand-pink text-xs font-bold uppercase tracking-widest mb-4 font-display">
-                <span>🧟</span>
-                <span>ZOMBIE ORGANIZATION CHECK™ · THE AUTHENTIC DIAGNOSTIC</span>
-              </div>
-              <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4 font-sans">
-                องค์กรของคุณกำลังเป็นซอมบี้แค่ไหน? 🧟
-              </h2>
-              <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                ตอบ 10 คำถามเพื่อวัดสภาวะจริง ค้นพบสัญญาณความเฉื่อยชาที่ซ่อนอยู่ และรับแนวทางฟื้นฟูทีมจากข้างในสู่ <strong>Living Organization</strong>
-              </p>
-            </div>
-
-            {/* Quiz Flow Component */}
-            {!quizStarted && !showLeadForm && !hasSubmittedQuiz && (
-              <div className="p-8 sm:p-12 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl text-center shadow-2xl">
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-brand-pink/30 to-brand-purple/30 text-brand-pink flex items-center justify-center mx-auto mb-6 border border-white/15 shadow-inner text-3xl">
-                  🧟
-                </div>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-white mb-3 font-display">
-                  พร้อมสำรวจดัชนีสุขภาพของทีมคุณแล้วหรือยัง?
-                </h3>
-                <p className="text-sm sm:text-base text-slate-300 max-w-lg mx-auto mb-8 leading-relaxed">
-                  ใช้เวลาประมาณ 3 นาที เพื่อค้นพบว่าองค์กรของคุณอยู่ในสภาวะใด จาก 4 ระดับ:
-                </p>
-
-                {/* 4 Levels Preview Cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto mb-8 text-left">
-                  <div className="p-3.5 rounded-2xl bg-white/5 border border-pink-500/30">
-                    <span className="text-[10px] font-bold text-pink-400 block font-display">10-17 คะแนน</span>
-                    <span className="text-xs font-bold text-white block mt-0.5">🧟 ZOMBIE</span>
-                    <span className="text-[11px] text-slate-400 block mt-1">หมดไฟ ไร้วิญญาณ</span>
-                  </div>
-                  <div className="p-3.5 rounded-2xl bg-white/5 border border-blue-500/30">
-                    <span className="text-[10px] font-bold text-blue-400 block font-display">18-25 คะแนน</span>
-                    <span className="text-xs font-bold text-white block mt-0.5">💨 FADED</span>
-                    <span className="text-[11px] text-slate-400 block mt-1">เริ่มเงียบ ต่างคนต่างทำ</span>
-                  </div>
-                  <div className="p-3.5 rounded-2xl bg-white/5 border border-amber-500/30">
-                    <span className="text-[10px] font-bold text-amber-400 block font-display">26-33 คะแนน</span>
-                    <span className="text-xs font-bold text-white block mt-0.5">⚠️ TIRED</span>
-                    <span className="text-[11px] text-slate-400 block mt-1">เหนื่อยสะสม ขาดไฟใหม่</span>
-                  </div>
-                  <div className="p-3.5 rounded-2xl bg-white/5 border border-emerald-500/30">
-                    <span className="text-[10px] font-bold text-emerald-400 block font-display">34-40 คะแนน</span>
-                    <span className="text-xs font-bold text-white block mt-0.5">✨ ALIVE</span>
-                    <span className="text-[11px] text-slate-400 block mt-1">องค์กรตัวจริงมีพลัง</span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setQuizStarted(true)}
-                  className="px-10 py-4 rounded-pill bg-gradient-to-r from-brand-pink to-rose-600 text-white font-display font-bold text-base hover:shadow-xl hover:shadow-brand-pink/40 hover:scale-105 transition-all cursor-pointer inline-flex items-center gap-2"
-                >
-                  <span>🧟 เริ่มทำแบบประเมิน Zombie Check™</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-
-            {/* In-Progress Quiz Questions */}
-            {quizStarted && !showLeadForm && !hasSubmittedQuiz && (
-              <div className="p-6 sm:p-10 rounded-3xl bg-white/10 border border-white/15 backdrop-blur-xl animate-in fade-in duration-300">
-                <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-white/10 text-xs font-display">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-full bg-brand-pink/20 text-brand-pink font-bold border border-brand-pink/30">
-                      คำถาม {currentQIndex + 1} / {QUIZ_QUESTIONS.length}
-                    </span>
-                    <span className="text-slate-400 hidden sm:inline">Zombie Organization Index</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-slate-300 font-medium">ความคืบหน้า {Math.round(((currentQIndex + 1) / QUIZ_QUESTIONS.length) * 100)}%</span>
-                    <div className="w-24 sm:w-32 h-2 bg-white/20 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-brand-pink transition-all duration-300"
-                        style={{ width: `${((currentQIndex + 1) / QUIZ_QUESTIONS.length) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-
-                <h3 className="text-lg sm:text-2xl font-extrabold text-white mb-6 leading-relaxed">
-                  {QUIZ_QUESTIONS[currentQIndex].question}
-                </h3>
-
-                <div className="space-y-3">
-                  {QUIZ_QUESTIONS[currentQIndex].answers.map((ans, aIdx) => (
-                    <button
-                      key={aIdx}
-                      type="button"
-                      onClick={() => handleAnswerSelect(ans.score)}
-                      className="w-full p-4.5 rounded-2xl bg-white/5 hover:bg-white/15 border border-white/10 hover:border-brand-pink/50 text-left text-xs sm:text-sm text-slate-200 hover:text-white transition-all duration-200 flex items-center justify-between gap-3 group cursor-pointer"
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="w-6 h-6 rounded-full bg-white/10 group-hover:bg-brand-pink group-hover:text-white flex items-center justify-center text-xs font-bold text-slate-300 shrink-0 mt-0.5 transition-colors font-display">
-                          {String.fromCharCode(65 + aIdx)}
-                        </span>
-                        <span className="leading-relaxed">{ans.text}</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-white/30 group-hover:text-brand-pink shrink-0 transition-colors" />
-                    </button>
-                  ))}
-                </div>
-
-                {currentQIndex > 0 && (
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setCurrentQIndex(currentQIndex - 1);
-                      setQuizAnswers(quizAnswers.slice(0, -1));
-                    }}
-                    className="mt-6 text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1 font-display"
-                  >
-                    <ChevronLeft className="w-4 h-4" /> ย้อนกลับไปข้อก่อนหน้า
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Assessment Lead Submission Form */}
-            {showLeadForm && !hasSubmittedQuiz && (
-              <div className="p-6 sm:p-10 rounded-3xl bg-white/10 border border-white/15 backdrop-blur-xl animate-in fade-in duration-300">
-                <div className="text-center mb-8">
-                  <div className="inline-block px-3.5 py-1 rounded-full bg-amber-400/20 text-amber-300 text-xs font-bold mb-2 font-display border border-amber-400/30">
-                    ✓ ประเมินครบทั้ง 10 ข้อเรียบร้อยแล้ว
-                  </div>
-                  <h3 className="text-xl sm:text-3xl font-extrabold text-white font-sans">
-                    กรอกข้อมูลเพื่อรับผลวิเคราะห์ Zombie Level & Rebirth Plan
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-300 mt-2">
-                    ผลลัพธ์จะแสดงบนหน้าจอทันที พร้อมส่งสรุปแนวทางฟื้นฟูทีมให้ทางอีเมลหรือไลน์
-                  </p>
-                </div>
-
-                <fetcher.Form method="post" className="space-y-4 max-w-lg mx-auto">
-                  <input type="hidden" name="form_type" value="quiz" />
-                  <input type="hidden" name="score" value={currentScore} />
-                  <input type="hidden" name="result_level" value={resultInfo.level} />
-                  <input type="hidden" name="answers" value={JSON.stringify(quizAnswers)} />
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 font-display">
-                      ชื่อ-นามสกุลผู้ทำแบบประเมิน *
-                    </label>
-                    <input 
-                      type="text" 
-                      name="name" 
-                      required 
-                      placeholder="เช่น คุณกฤษฎา / ผู้บริหาร / HR Manager"
-                      className="w-full bg-white/10 border border-white/20 focus:border-brand-pink rounded-xl px-4 py-3 text-white placeholder-slate-400 outline-none text-sm"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 font-display">
-                        ชื่อองค์กร / บริษัท *
-                      </label>
-                      <input 
-                        type="text" 
-                        name="company" 
-                        required 
-                        placeholder="ชื่อบริษัทหรือหน่วยงาน"
-                        className="w-full bg-white/10 border border-white/20 focus:border-brand-pink rounded-xl px-4 py-3 text-white placeholder-slate-400 outline-none text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 font-display">
-                        ตำแหน่งของคุณ
-                      </label>
-                      <input 
-                        type="text" 
-                        name="position" 
-                        placeholder="เช่น CEO, HRD, Team Lead"
-                        className="w-full bg-white/10 border border-white/20 focus:border-brand-pink rounded-xl px-4 py-3 text-white placeholder-slate-400 outline-none text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 font-display">
-                      อีเมล หรือ LINE ID เพื่อส่งผลวิเคราะห์ *
-                    </label>
-                    <input 
-                      type="text" 
-                      name="email_or_line" 
-                      required 
-                      placeholder="email@company.com หรือ Line ID"
-                      className="w-full bg-white/10 border border-white/20 focus:border-brand-pink rounded-xl px-4 py-3 text-white placeholder-slate-400 outline-none text-sm"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-4 mt-2 rounded-pill bg-brand-pink text-white font-display font-bold text-base hover:shadow-lg hover:shadow-brand-pink/40 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer transition-all"
-                  >
-                    {isSubmitting ? (
-                      <span>กำลังประมวลผลดัชนี...</span>
-                    ) : (
-                      <span>ดูผลวิเคราะห์ Zombie Level ทันที</span>
-                    )}
-                  </button>
-                </fetcher.Form>
-              </div>
-            )}
-
-            {/* Completed Assessment Result Display */}
-            {hasSubmittedQuiz && (
-              <div className="p-8 sm:p-12 rounded-3xl bg-white text-slate-900 shadow-2xl text-center animate-in zoom-in-95 duration-300">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold mb-3 font-display">
-                  <span>📊</span>
-                  <span>คะแนนรวม: {currentScore} / 40 คะแนน</span>
-                </div>
-
-                <h3 className="text-2xl sm:text-3xl font-extrabold mb-4 font-display text-slate-900">
-                  {resultInfo.title}
-                </h3>
-
-                <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-left max-w-2xl mx-auto mb-8">
-                  <p className="text-sm sm:text-base text-slate-700 leading-relaxed mb-4">
-                    {resultInfo.desc}
-                  </p>
-                  <div className="p-4 rounded-xl bg-purple-50 border border-purple-100 text-xs sm:text-sm text-brand-purple font-medium">
-                    💡 <strong>หลักสูตรแนะนำสำหรับสภาวะนี้:</strong> หลักสูตร <em>From Zombie to Living Organization</em> (เน้นโมดูล {resultInfo.level === "ZOMBIE" ? "REBORN PEOPLE & ALIVE TEAM" : resultInfo.level === "FADED" ? "ALIVE TEAM & REBORN LEADER" : resultInfo.level === "TIRED" ? "REBORN LEADER & LIVING CULTURE" : "LIVING CULTURE & BRAND DNA"})
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <a 
-                    href="#contact" 
-                    className="w-full sm:w-auto px-8 py-3.5 rounded-pill bg-brand-pink text-white font-display font-bold text-sm shadow-md hover:shadow-lg transition-all"
-                  >
-                    ปรึกษาทีมชุ่มฉ่ำเพื่อวางแผนปลดล็อกทีม
-                  </a>
-                  <button
-                    type="button"
-                    onClick={restartQuiz}
-                    className="w-full sm:w-auto px-6 py-3.5 rounded-pill bg-slate-100 hover:bg-slate-200 text-slate-700 font-display font-semibold text-sm transition-colors cursor-pointer"
-                  >
-                    ทำแบบประเมินอีกครั้ง
-                  </button>
-                </div>
-              </div>
-            )}
-
-          </div>
-        </section>
-
-        {/* ========================================================
             SECTION 10: FINAL CLOSING CALL TO ACTION & FORM
         ======================================================== */}
         <section id="contact" className="py-20 lg:py-28 px-6 bg-gradient-to-b from-brand-surface via-white to-purple-50/50 relative">
@@ -1961,20 +1699,21 @@ export default function Home() {
                     ส่งข้อมูลเรียบร้อยแล้ว
                   </h4>
                   <p className="text-sm text-emerald-700 max-w-md mx-auto">
-                    ทีม Choomcham Branding ได้รับข้อมูลโจทย์ของคุณแล้ว และจะติดต่อกลับเพื่อให้คำปรึกษาและส่งรายละเอียดภายใน 24 ชั่วโมงครับ
+                    ทีมชุ่มฉ่ำได้รับโจทย์ของคุณแล้ว และจะติดต่อกลับผ่านช่องทางที่แจ้งไว้
                   </p>
                 </div>
               ) : (
                 <fetcher.Form method="post" className="space-y-4">
+                  {fetcher.data && !(fetcher.data as any).success && (fetcher.data as any).formType === "contact" && <p role="alert" className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{(fetcher.data as any).error || "ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่"}</p>}
                   <input type="hidden" name="form_type" value="contact" />
                   <input type="hidden" name="result_level" value={inquiryType.toUpperCase()} />
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1 font-display">
+                      <label htmlFor="lead-field-5" className="block text-xs font-bold text-slate-700 mb-1 font-display">
                         ชื่อผู้ติดต่อ *
                       </label>
-                      <input 
+                      <input id="lead-field-5"
                         type="text" 
                         name="name" 
                         required 
@@ -1983,10 +1722,10 @@ export default function Home() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1 font-display">
+                      <label htmlFor="lead-field-6" className="block text-xs font-bold text-slate-700 mb-1 font-display">
                         ชื่อองค์กร / บริษัท *
                       </label>
-                      <input 
+                      <input id="lead-field-6"
                         type="text" 
                         name="company" 
                         required 
@@ -1998,10 +1737,10 @@ export default function Home() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1 font-display">
+                      <label htmlFor="lead-field-7" className="block text-xs font-bold text-slate-700 mb-1 font-display">
                         ตำแหน่งในองค์กร
                       </label>
-                      <input 
+                      <input id="lead-field-7"
                         type="text" 
                         name="position" 
                         placeholder="เช่น ผู้บริหาร, HR Manager, Team Lead"
@@ -2009,10 +1748,10 @@ export default function Home() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1 font-display">
+                      <label htmlFor="lead-field-8" className="block text-xs font-bold text-slate-700 mb-1 font-display">
                         เบอร์โทรศัพท์ / LINE ID / Email *
                       </label>
-                      <input 
+                      <input id="lead-field-8"
                         type="text" 
                         name="email_or_line" 
                         required 
@@ -2024,10 +1763,10 @@ export default function Home() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1 font-display">
+                      <label htmlFor="lead-field-9" className="block text-xs font-bold text-slate-700 mb-1 font-display">
                         หลักสูตร / รูปแบบที่สนใจ
                       </label>
-                      <select 
+                      <select id="lead-field-9"
                         name="program_interest"
                         className="w-full bg-slate-50 border border-slate-200 focus:border-brand-purple focus:bg-white rounded-xl px-4 py-3 text-slate-900 text-sm outline-none transition-colors"
                       >
@@ -2041,10 +1780,10 @@ export default function Home() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1 font-display">
+                      <label htmlFor="lead-field-10" className="block text-xs font-bold text-slate-700 mb-1 font-display">
                         กรอบเวลาที่วางแผนจัดอบรม
                       </label>
-                      <select 
+                      <select id="lead-field-10"
                         name="timeline"
                         className="w-full bg-slate-50 border border-slate-200 focus:border-brand-purple focus:bg-white rounded-xl px-4 py-3 text-slate-900 text-sm outline-none transition-colors"
                       >
@@ -2056,10 +1795,10 @@ export default function Home() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1 font-display">
+                    <label htmlFor="lead-field-11" className="block text-xs font-bold text-slate-700 mb-1 font-display">
                       รายละเอียดโจทย์หรือเป้าหมายที่ต้องการให้เราช่วยออกแบบ
                     </label>
-                    <textarea 
+                    <textarea id="lead-field-11"
                       name="details" 
                       rows={3}
                       placeholder="เช่น มีคนเก่งแต่ต่างคนต่างทำ, ต้องการพัฒนาทักษะการนำคนให้หัวหน้าทีม, ปรับปรุง Communication ภายในทีม..."

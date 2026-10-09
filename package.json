@@ -10,6 +10,8 @@
     "deploy": "react-router build && npx wrangler pages deploy ./build/client --project-name=choomcham --branch=main --commit-dirty=true"
   },
   "dependencies": {
+    "@fontsource-variable/anuphan": "^5.3.0",
+    "@fontsource/poppins": "^5.3.0",
     "@react-router/node": "^8",
     "@react-router/serve": "^8",
     "@supabase/supabase-js": "^2.112.4",
