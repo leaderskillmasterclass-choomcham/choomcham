@@ -487,6 +487,24 @@ const CASE_STUDIES = [
 
 const WORKSHOP_GALLERY_IMAGES = [
   {
+    id: "wsg-1",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Workshop_Gallery/Comprehensive%20OD%20%26%20Training%20Solutions.jpg",
+    title: "Comprehensive OD & Training Solutions — พัฒนาองค์กรแบบองค์รวมครบวงจร",
+    category: "OD Solutions"
+  },
+  {
+    id: "wsg-2",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Workshop_Gallery/Customized%20In-house%20Solutions.jpg",
+    title: "Customized In-house Solutions — ออกแบบเฉพาะตามโจทย์และบริบทจริงขององค์กร",
+    category: "In-house"
+  },
+  {
+    id: "wsg-3",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Workshop_Gallery/Organization%20Culture.jpg",
+    title: "Organization Culture — ปลูกฝังวัฒนธรรมองค์กรที่แข็งแรงและยั่งยืน",
+    category: "Culture"
+  },
+  {
     id: "g-1",
     url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/reimagine/REimagine1.jpg",
     title: "Facilitative Leadership & Team Ideation — จุดประกายความคิดสร้างสรรค์",
