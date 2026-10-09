@@ -12,12 +12,17 @@ export async function onRequestGet({
   if (auth.role !== "SUPERADMIN")
     return json({ error: "ต้องใช้สิทธิ์ Super Admin" }, 403);
   const allowed = emails(env.ADMIN_EMAILS || env.COURSE_ADMIN_EMAILS),
-    supers = emails(env.SUPER_ADMIN_EMAILS);
+    supers = emails(env.SUPER_ADMIN_EMAILS),
+    operators = emails(env.OPERATOR_EMAILS);
   return json({
     success: true,
     data: allowed.map((email) => ({
       email,
-      role: supers.includes(email) ? "SUPERADMIN" : "ADMIN",
+      role: supers.includes(email)
+        ? "SUPERADMIN"
+        : operators.includes(email)
+        ? "OPERATOR"
+        : "ADMIN",
     })),
   });
 }

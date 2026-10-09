@@ -8,8 +8,11 @@ export async function onRequestGet({
 }) {
   const auth = await authorize(request, env);
   if (auth.response) return auth.response;
+  const userMeta = auth.user!.user_metadata || {};
+  const displayName =
+    userMeta.display_name || userMeta.name || userMeta.full_name || auth.user!.email;
   return json({
     success: true,
-    data: { email: auth.user!.email, name: auth.user!.email, role: auth.role },
+    data: { email: auth.user!.email, name: displayName, role: auth.role },
   });
 }

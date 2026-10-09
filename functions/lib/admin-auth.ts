@@ -12,6 +12,7 @@ export type AdminEnv = {
   SUPABASE_SERVICE_ROLE_KEY?: string;
   ADMIN_EMAILS?: string;
   SUPER_ADMIN_EMAILS?: string;
+  OPERATOR_EMAILS?: string;
   COURSE_ADMIN_EMAILS?: string;
 };
 export const emails = (value?: string) =>
@@ -34,12 +35,13 @@ export async function authorize(request: Request, env: AdminEnv) {
     const { data, error } = await db.auth.getUser(token);
     if (error || !data.user?.email || !data.user.email_confirmed_at)
       return { response: json({ error: "กรุณาเข้าสู่ระบบใหม่" }, 401) };
-    if (!allowed.includes(data.user.email.toLowerCase()))
+    const emailLower = data.user.email.toLowerCase();
+    if (!allowed.includes(emailLower))
       return { response: json({ error: "บัญชีนี้ไม่มีสิทธิ์ผู้ดูแล" }, 403) };
-    const role = emails(env.SUPER_ADMIN_EMAILS).includes(
-      data.user.email.toLowerCase(),
-    )
+    const role = emails(env.SUPER_ADMIN_EMAILS).includes(emailLower)
       ? "SUPERADMIN"
+      : emails(env.OPERATOR_EMAILS).includes(emailLower)
+      ? "OPERATOR"
       : "ADMIN";
     return { db, user: data.user, role };
   } catch {
