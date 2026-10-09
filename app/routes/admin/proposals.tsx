@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 import { AdminLayout } from "~/components/admin/AdminLayout";
 import { 
   FileText, 
@@ -64,16 +65,27 @@ const PROGRAM_TEMPLATES = [
 ];
 
 export default function AdminProposals() {
+  const [searchParams] = useSearchParams();
   const [leads, setLeads] = useState<any[]>([]);
   const [selectedLeadId, setSelectedLeadId] = useState<string>("");
 
-  // Form States
-  const [company, setCompany] = useState("บริษัท ตัวอย่าง อินโนเวชั่น จำกัด");
-  const [contactName, setContactName] = useState("คุณผู้บริหาร นามสมมุติ");
-  const [position, setPosition] = useState("Chief People Officer / HRD");
-  const [teamSize, setTeamSize] = useState("20-50 คน");
-  const [selectedProgram, setSelectedProgram] = useState(PROGRAM_TEMPLATES[1]);
-  const [customPrice, setCustomPrice] = useState<number>(185000);
+  // Form States (with URL search params support)
+  const initialCompany = searchParams.get("company") || "บริษัท ตัวอย่าง อินโนเวชั่น จำกัด";
+  const initialName = searchParams.get("name") || "คุณผู้บริหาร นามสมมุติ";
+  const initialPosition = searchParams.get("position") || "Chief People Officer / HRD";
+  const initialTeamSize = searchParams.get("teamSize") || "20-50 คน";
+  const initialProgramName = searchParams.get("program") || "";
+
+  const matchedTemplate = initialProgramName
+    ? PROGRAM_TEMPLATES.find(p => initialProgramName.toLowerCase().includes(p.id.toLowerCase()) || initialProgramName.includes(p.name)) || PROGRAM_TEMPLATES[1]
+    : PROGRAM_TEMPLATES[1];
+
+  const [company, setCompany] = useState(initialCompany);
+  const [contactName, setContactName] = useState(initialName);
+  const [position, setPosition] = useState(initialPosition);
+  const [teamSize, setTeamSize] = useState(initialTeamSize);
+  const [selectedProgram, setSelectedProgram] = useState(matchedTemplate);
+  const [customPrice, setCustomPrice] = useState<number>(matchedTemplate.defaultPrice);
   const [workshopDate, setWorkshopDate] = useState("ภายใน 30 วันหลังอนุมัติ");
   const [validUntilDays, setValidUntilDays] = useState(30);
   const [customNotes, setCustomNotes] = useState("");

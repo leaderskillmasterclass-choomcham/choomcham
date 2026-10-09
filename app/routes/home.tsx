@@ -687,6 +687,21 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   }
 }
 
+const PROGRAM_OPTIONS = [
+  "Module 01: ปลุกคนหมดไฟ & ซอมบี้ในที่ทำงาน (Reborn People)",
+  "Module 02: ทลายกำแพง Silo สู่ทีมที่มีชีวิต (Alive Team)",
+  "Module 03: ผู้นำตัวจริงที่ไม่ต้องแบกงานคนเดียว (Reborn Leader)",
+  "Module 04: วัฒนธรรมองค์กรตัวจริงที่ยั่งยืน (Living Culture)",
+  "Flagship Program: From Zombie to Living Organization (ครบวงจร)",
+  "Level 1: ตัวจริงของตัวเอง (Self-Discovery & Mindset)",
+  "Level 2: ตัวจริงที่สื่อสารเป็น (Authentic Communication & Feedback)",
+  "Level 3: ตัวจริงที่สร้างทีมเป็น (Team Synergy & Psychological Safety)",
+  "Level 4: ตัวจริงที่นำคนเป็น (Empowering Leadership & Coaching)",
+  "Level 5: วัฒนธรรมที่ตัวจริงมีที่ยืน (Living Organization Culture)",
+  "In-house Training & Workshop (อบรมภายในองค์กร)",
+  "Customized Organization Transformation (ออกแบบเฉพาะโจทย์องค์กร)"
+];
+
 export default function Home() {
   const fetcher = useFetcher();
   const isSubmitting = fetcher.state === "submitting";
@@ -700,8 +715,18 @@ export default function Home() {
     }
   }, [fetcher.data]);
 
-  // Contact Form Tab State
+  // Contact Form Tab State & Program Selection
   const [inquiryType, setInquiryType] = useState<"consultation" | "proposal" | "program">("consultation");
+  const [selectedProgram, setSelectedProgram] = useState<string>("Module 01: ปลุกคนหมดไฟ & ซอมบี้ในที่ทำงาน (Reborn People)");
+
+  const handleRequestProposal = (programTitle: string) => {
+    setInquiryType("proposal");
+    setSelectedProgram(programTitle);
+    const contactSection = document.getElementById("contact");
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   // FAQ open/close state (open multiple or single)
   const [openFaqId, setOpenFaqId] = useState<number | null>(1);
@@ -1163,11 +1188,22 @@ export default function Home() {
                         </p>
                       </div>
 
-                      <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-2">
+                      <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-2 mb-3">
                         <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
                         <span>{lvl.benefit}</span>
                       </p>
                       </details>
+
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between w-full">
+                        <button
+                          type="button"
+                          onClick={() => handleRequestProposal(`Level ${lvl.levelNumber}: ${lvl.title} (${lvl.code})`)}
+                          className="text-xs font-bold text-brand-purple hover:text-brand-pink flex items-center gap-1 font-display cursor-pointer transition-colors"
+                        >
+                          <span>ขอ Proposal / รายละเอียดระดับนี้</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -1486,12 +1522,13 @@ export default function Home() {
                         <span>ทำแบบประเมิน Zombie Check</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </a>
-                      <a 
-                        href="#contact" 
-                        className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-brand-purple text-white text-xs font-bold transition-colors font-display"
+                      <button 
+                        type="button"
+                        onClick={() => handleRequestProposal(`Module ${course.moduleNumber.replace("MODULE ", "")}: ${course.thaiTitle} (${course.title})`)}
+                        className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-brand-purple text-white text-xs font-bold transition-colors font-display cursor-pointer"
                       >
                         ขอ Proposal หลักสูตรนี้
-                      </a>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -1823,7 +1860,30 @@ export default function Home() {
                 <fetcher.Form method="post" className="space-y-4">
                   {fetcher.data && !(fetcher.data as any).success && (fetcher.data as any).formType === "contact" && <p role="alert" className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{(fetcher.data as any).error || "ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่"}</p>}
                   <input type="hidden" name="form_type" value="contact" />
-                  <input type="hidden" name="result_level" value={inquiryType.toUpperCase()} />
+                  <input 
+                    type="hidden" 
+                    name="result_level" 
+                    value={inquiryType === "proposal" ? "PROPOSAL_REQUEST" : inquiryType === "program" ? "PROGRAM_INQUIRY" : "CONSULTATION"} 
+                  />
+
+                  {selectedProgram && (
+                    <div className="p-3.5 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-between gap-3 animate-in fade-in duration-300">
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="px-2 py-0.5 rounded-md bg-brand-purple text-white text-[10px] font-bold uppercase tracking-wider font-display">
+                          {inquiryType === "proposal" ? "ขอ Proposal" : "หลักสูตรที่สนใจ"}
+                        </span>
+                        <span className="text-slate-600 font-medium">หัวข้อ:</span>
+                        <span className="font-bold text-purple-950 line-clamp-1">{selectedProgram}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedProgram("")}
+                        className="text-[11px] text-brand-purple hover:text-brand-pink font-bold shrink-0 cursor-pointer underline"
+                      >
+                        ล้าง / เลือกใหม่
+                      </button>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -1881,19 +1941,19 @@ export default function Home() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="lead-field-9" className="block text-xs font-bold text-slate-700 mb-1 font-display">
-                        หลักสูตร / รูปแบบที่สนใจ
+                        หลักสูตร / รูปแบบที่สนใจ {inquiryType === "proposal" && <span className="text-brand-pink">*</span>}
                       </label>
-                      <select id="lead-field-9"
+                      <select 
+                        id="lead-field-9"
                         name="program_interest"
+                        value={selectedProgram}
+                        onChange={(e) => setSelectedProgram(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 focus:border-brand-purple focus:bg-white rounded-xl px-4 py-3 text-slate-900 text-sm outline-none transition-colors"
                       >
-                        <option value="In-house Training & Workshop">In-house Training & Workshop</option>
-                        <option value="Communication Workshop">Communication Workshop</option>
-                        <option value="Team Development">Team Development</option>
-                        <option value="Leadership Development">Leadership Development</option>
-                        <option value="Future Leader Program">Future Leader Program</option>
-                        <option value="Culture Workshop">Culture Workshop</option>
-                        <option value="Customized Organization Program">Customized Organization Program</option>
+                        <option value="">-- เลือกหลักสูตร / รูปแบบที่ต้องการ --</option>
+                        {PROGRAM_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
                       </select>
                     </div>
                     <div>

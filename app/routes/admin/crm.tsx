@@ -200,10 +200,10 @@ export default function AdminCRM() {
       return l.score > 0 || l.dimensions_scores?.form_type === "quiz" || ["ALIVE", "TIRED", "FADED", "ZOMBIE"].includes(l.resultLevel);
     }
     if (leadTypeFilter === "CONSULT") {
-      return l.resultLevel === "CONSULT_BRIEF" || l.dimensions_scores?.form_type === "contact";
+      return l.resultLevel === "CONSULT_BRIEF" || l.resultLevel === "CONSULTATION" || l.resultLevel === "PROGRAM_INQUIRY" || l.dimensions_scores?.form_type === "contact";
     }
     if (leadTypeFilter === "PROPOSAL") {
-      return l.resultLevel === "PROPOSAL_REQUEST" || l.status === "PROPOSAL";
+      return l.resultLevel === "PROPOSAL_REQUEST" || l.resultLevel === "PROPOSAL" || l.status === "PROPOSAL" || !!l.dimensions_scores?.program_interest;
     }
     return true;
   });
@@ -516,10 +516,22 @@ export default function AdminCRM() {
                   <span className="text-slate-500 font-medium">ช่องทางติดต่อ:</span>
                   <span className="font-bold text-purple-700 select-all">{selectedLead.emailOrLine}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 font-medium">ขนาดทีม / ความต้องการ:</span>
-                  <span className="font-semibold text-slate-800">{selectedLead.teamSize}</span>
+                <div className="flex justify-between items-start text-xs">
+                  <span className="text-slate-500 font-medium">หลักสูตร / ความต้องการ:</span>
+                  <span className="font-semibold text-slate-800 text-right max-w-[200px]">{selectedLead.dimensions_scores?.program_interest || selectedLead.teamSize}</span>
                 </div>
+                {selectedLead.dimensions_scores?.timeline && (
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 font-medium">กรอบเวลาจัดอบรม:</span>
+                    <span className="font-semibold text-amber-700">{selectedLead.dimensions_scores.timeline}</span>
+                  </div>
+                )}
+                {selectedLead.dimensions_scores?.details && (
+                  <div className="flex flex-col gap-1 text-xs pt-1 border-t border-slate-100">
+                    <span className="text-slate-500 font-medium">รายละเอียดโจทย์เพิ่มเติม:</span>
+                    <span className="text-slate-700 bg-slate-50 p-2 rounded-lg leading-relaxed">{selectedLead.dimensions_scores.details}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-500 font-medium">วันที่บันทึก:</span>
                   <span className="text-slate-600">{selectedLead.createdAt}</span>
@@ -554,31 +566,38 @@ export default function AdminCRM() {
                   สร้างและออกใบเสนอราคาพร้อม 5-Stage Transformation Blueprint ส่งให้องค์กร {selectedLead.company} ได้ทันที
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  <a
-                    href={`/proposal?company=${encodeURIComponent(selectedLead.company)}&name=${encodeURIComponent(selectedLead.name)}&position=${encodeURIComponent(selectedLead.position)}&teamSize=${encodeURIComponent(selectedLead.teamSize)}&price=185000`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 min-w-[130px] bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors"
-                  >
-                    <FileText className="w-3.5 h-3.5" />
-                    <span>เปิดดู / พิมพ์ Proposal</span>
-                  </a>
-                  <a
-                    href="/admin/proposals"
-                    className="px-3 py-2 bg-pink-50 hover:bg-pink-100 border border-pink-200 text-pink-800 font-semibold rounded-xl text-xs transition-colors flex items-center gap-1"
-                  >
-                    <span>ปรับแต่งใน Engine ➔</span>
-                  </a>
-                  <button
-                    onClick={() => {
-                      const proposalUrl = `${window.location.origin}/proposal?company=${encodeURIComponent(selectedLead.company)}&name=${encodeURIComponent(selectedLead.name)}&position=${encodeURIComponent(selectedLead.position)}&teamSize=${encodeURIComponent(selectedLead.teamSize)}&price=185000`;
-                      navigator.clipboard.writeText(proposalUrl);
-                      alert(`คัดลอกลิงก์ Proposal สำหรับ ${selectedLead.company} เรียบร้อยแล้ว!\nสามารถส่งให้ลูกค้าเปิดดูหรือพิมพ์ได้ทันทีครับ`);
-                    }}
-                    className="px-3 py-2 bg-white hover:bg-slate-50 border border-purple-300 text-purple-800 font-semibold rounded-xl text-xs transition-colors"
-                  >
-                    คัดลอกลิงก์
-                  </button>
+                  {(() => {
+                    const targetProg = selectedLead.dimensions_scores?.program_interest || selectedLead.teamSize || "REBORN PEOPLE & ALIVE TEAM";
+                    const proposalUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/proposal?company=${encodeURIComponent(selectedLead.company)}&name=${encodeURIComponent(selectedLead.name)}&position=${encodeURIComponent(selectedLead.position)}&teamSize=${encodeURIComponent(selectedLead.teamSize)}&price=185000&program=${encodeURIComponent(targetProg)}`;
+                    return (
+                      <>
+                        <a
+                          href={proposalUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 min-w-[130px] bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>เปิดดู / พิมพ์ Proposal</span>
+                        </a>
+                        <a
+                          href={`/admin/proposals?company=${encodeURIComponent(selectedLead.company)}&name=${encodeURIComponent(selectedLead.name)}&position=${encodeURIComponent(selectedLead.position)}&teamSize=${encodeURIComponent(selectedLead.teamSize)}&program=${encodeURIComponent(targetProg)}`}
+                          className="px-3 py-2 bg-pink-50 hover:bg-pink-100 border border-pink-200 text-pink-800 font-semibold rounded-xl text-xs transition-colors flex items-center gap-1"
+                        >
+                          <span>ปรับแต่งใน Engine ➔</span>
+                        </a>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(proposalUrl);
+                            alert(`คัดลอกลิงก์ Proposal สำหรับ ${selectedLead.company} เรียบร้อยแล้ว!\nหลักสูตร: ${targetProg}\nสามารถส่งให้ลูกค้าเปิดดูหรือพิมพ์ได้ทันทีครับ`);
+                          }}
+                          className="px-3 py-2 bg-white hover:bg-slate-50 border border-purple-300 text-purple-800 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+                        >
+                          คัดลอกลิงก์
+                        </button>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

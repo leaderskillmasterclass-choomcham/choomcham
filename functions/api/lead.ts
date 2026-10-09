@@ -86,26 +86,40 @@ export async function onRequestPost(context: { request: Request; env: any }) {
 
     if (lineChannelToken) {
       const isValidTargetUser = lineTargetUserId && !lineTargetUserId.includes("PASTE_");
-      const isConsultOrProposal = body.result_level === "CONSULT_BRIEF" || body.result_level === "PROPOSAL_REQUEST" || body.result_level === "INQUIRY";
+      const isProposal = body.result_level === "PROPOSAL_REQUEST" || body.result_level === "PROPOSAL";
+      const isConsultOrProposal = isProposal || 
+                                  body.result_level === "CONSULT_BRIEF" || 
+                                  body.result_level === "PROGRAM_INQUIRY" || 
+                                  body.result_level === "CONSULTATION" || 
+                                  body.result_level === "INQUIRY";
       
-      const badgeText = isConsultOrProposal 
-        ? "🎯 นัดพูดคุย & ขอใบเสนอราคาองค์กร" 
-        : "🧟 ZOMBIE ORGANIZATION CHECK™";
+      const badgeText = isProposal
+        ? "📑 คำขอ PROPOSAL & ใบเสนอราคา"
+        : isConsultOrProposal 
+          ? "🎯 นัดพูดคุย & ปรึกษาโจทย์องค์กร" 
+          : "🧟 ZOMBIE ORGANIZATION CHECK™";
         
-      const headerTitle = isConsultOrProposal
-        ? (body.result_level === "PROPOSAL_REQUEST" ? "มีคำขอใบเสนอราคา & ออกแบบหลักสูตร" : "มีนัดพูดคุยปรึกษาโจทย์องค์กรใหม่")
-        : "มีผลประเมินสุขภาพองค์กรใหม่";
+      const headerTitle = isProposal
+        ? "มีคำขอ Proposal & ใบเสนอราคาหลักสูตร"
+        : isConsultOrProposal
+          ? "มีนัดพูดคุยปรึกษาโจทย์องค์กรใหม่"
+          : "มีผลประเมินสุขภาพองค์กรใหม่";
 
       const themeColor = body.result_level === "ZOMBIE" ? "#E11D48" :
                          body.result_level === "FADED" ? "#EA580C" :
                          body.result_level === "TIRED" ? "#D97706" : 
+                         isProposal ? "#E3346B" :
                          isConsultOrProposal ? "#9333EA" : "#059669";
+
+      const selectedProgramName = body.dimensions_scores?.program_interest || body.team_size || "ไม่ได้ระบุหลักสูตร";
 
       const flexMessage = {
         type: "flex",
-        altText: isConsultOrProposal 
-          ? `🎯 [นัดคุย/ขอ Proposal] ${body.name} (${body.company})`
-          : `🧟 [Lead ใหม่] ${body.name} (${body.company}) - ${body.result_level}`,
+        altText: isProposal
+          ? `📑 [ขอ Proposal] ${body.name} (${body.company}) - ${selectedProgramName}`
+          : isConsultOrProposal 
+            ? `🎯 [นัดคุย/ปรึกษา] ${body.name} (${body.company})`
+            : `🧟 [Lead ใหม่] ${body.name} (${body.company}) - ${body.result_level}`,
         contents: {
           type: "bubble",
           size: "giga",
@@ -150,7 +164,7 @@ export async function onRequestPost(context: { request: Request; env: any }) {
                 layout: "horizontal",
                 contents: [
                   { type: "text", text: "ผู้ติดต่อ:", color: "#64748B", size: "sm", flex: 2 },
-                  { type: "text", text: `${body.name} (${body.position})`, color: "#0F172A", size: "sm", flex: 4 }
+                  { type: "text", text: `${body.name} (${body.position || "ไม่ระบุตำแหน่ง"})`, color: "#0F172A", size: "sm", flex: 4 }
                 ]
               },
               {
@@ -165,8 +179,8 @@ export async function onRequestPost(context: { request: Request; env: any }) {
                 type: "box",
                 layout: "horizontal",
                 contents: [
-                  { type: "text", text: isConsultOrProposal ? "ความต้องการ:" : "ระดับประเมิน:", color: "#64748B", size: "sm", flex: 2 },
-                  { type: "text", text: isConsultOrProposal ? (body.team_size || "ออกแบบโปรแกรมเฉพาะ") : `${body.result_level} (${body.score}/40 คะแนน)`, color: themeColor, weight: "bold", size: "sm", flex: 4, wrap: true }
+                  { type: "text", text: isProposal ? "หลักสูตรที่ขอ:" : isConsultOrProposal ? "ความต้องการ:" : "ระดับประเมิน:", color: "#64748B", size: "sm", flex: 2 },
+                  { type: "text", text: isConsultOrProposal ? selectedProgramName : `${body.result_level} (${body.score}/40 คะแนน)`, color: themeColor, weight: "bold", size: "sm", flex: 4, wrap: true }
                 ]
               }
             ]
