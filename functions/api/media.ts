@@ -1,316 +1,144 @@
-// Cloudflare Serverless Function: /api/media
-// Manages Media & Gallery on Cloudflare R2 Bucket "media"
-
-const ACCOUNT_ID = "1af3cf042ce92dccf6c10ecb81c0181b";
-const ACCESS_KEY_ID = "b8a19572c58da6fc4ce68cc3f299bdc6";
-const SECRET_ACCESS_KEY = "e2499c1ccc5a5bd55a7ac1a5223e035cc0b127774605638d507b373af70ad1e6";
-const BUCKET_NAME = "media";
-const PUBLIC_DOMAIN = "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev";
-
-// Helper for AWS Signature v4 in Cloudflare Workers environment (using Web Crypto API)
-async function hmac(key: ArrayBuffer | Uint8Array | string, str: string): Promise<ArrayBuffer> {
-  const encoder = new TextEncoder();
-  const keyData: BufferSource = typeof key === "string" ? encoder.encode(key) : (key as BufferSource);
-  const cryptoKey = await crypto.subtle.importKey(
-    "raw",
-    keyData,
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-  return await crypto.subtle.sign("HMAC", cryptoKey, encoder.encode(str));
-}
-
-async function sha256Hex(data: ArrayBuffer | Uint8Array | string): Promise<string> {
-  const encoder = new TextEncoder();
-  const buffer: BufferSource = typeof data === "string" ? encoder.encode(data) : (data as BufferSource);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-function bufferToHex(buffer: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-// GET: List R2 Objects in folder/prefix
-export async function onRequestGet(context: { request: Request; env: any }) {
-  const { request, env } = context;
-  const url = new URL(request.url);
-  const prefix = url.searchParams.get("prefix") || "Alive_Model/";
-
-  const accountId = env.CLOUDFLARE_ACCOUNT_ID || ACCOUNT_ID;
-  const accessKeyId = env.R2_ACCESS_KEY_ID || ACCESS_KEY_ID;
-  const secretAccessKey = env.R2_SECRET_ACCESS_KEY || SECRET_ACCESS_KEY;
-  const bucket = env.R2_BUCKET_NAME || BUCKET_NAME;
-  const publicDomain = env.R2_PUBLIC_DOMAIN || PUBLIC_DOMAIN;
-
-  try {
-    const host = `${accountId}.r2.cloudflarestorage.com`;
-    const canonicalUri = `/${bucket}`;
-    const canonicalQuery = `list-type=2&prefix=${encodeURIComponent(prefix)}`;
-    const endpoint = `https://${host}${canonicalUri}?${canonicalQuery}`;
-
-    const now = new Date();
-    const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
-    const dateStamp = amzDate.substring(0, 8);
-    const region = "auto";
-    const service = "s3";
-
-    const payloadHash = await sha256Hex("");
-    const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
-    const signedHeaders = "host;x-amz-content-sha256;x-amz-date";
-
-    const canonicalRequest = ["GET", canonicalUri, canonicalQuery, canonicalHeaders, signedHeaders, payloadHash].join("\n");
-    const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
-    const stringToSign = ["AWS4-HMAC-SHA256", amzDate, credentialScope, await sha256Hex(canonicalRequest)].join("\n");
-
-    const kDate = await hmac("AWS4" + secretAccessKey, dateStamp);
-    const kRegion = await hmac(kDate, region);
-    const kService = await hmac(kRegion, service);
-    const kSigning = await hmac(kService, "aws4_request");
-    const signature = bufferToHex(await hmac(kSigning, stringToSign));
-
-    const authHeader = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
-
-    const r2Res = await fetch(endpoint, {
-      headers: {
-        host: host,
-        "x-amz-date": amzDate,
-        "x-amz-content-sha256": payloadHash,
-        Authorization: authHeader,
-      },
-    });
-
-    if (!r2Res.ok) {
-      const errText = await r2Res.text();
-      return new Response(JSON.stringify({ error: `R2 API Error: ${errText}`, status: r2Res.status }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const xml = await r2Res.text();
-
-    // Parse XML contents
-    const items: Array<{ key: string; size: number; lastModified: string; url: string; name: string }> = [];
-    const contentsRegex = /<Contents>([\s\S]*?)<\/Contents>/g;
-    let match;
-
-    while ((match = contentsRegex.exec(xml)) !== null) {
-      const block = match[1];
-      const keyMatch = /<Key>(.*?)<\/Key>/.exec(block);
-      const sizeMatch = /<Size>(.*?)<\/Size>/.exec(block);
-      const modMatch = /<LastModified>(.*?)<\/LastModified>/.exec(block);
-
-      if (keyMatch && keyMatch[1]) {
-        const key = keyMatch[1];
-        // Skip directory placeholder
-        if (key.endsWith("/")) continue;
-
-        const size = sizeMatch ? parseInt(sizeMatch[1], 10) : 0;
-        const lastModified = modMatch ? modMatch[1] : "";
-        const filename = key.split("/").pop() || key;
-
-        items.push({
-          key,
-          size,
-          lastModified,
-          url: `${publicDomain}/${key}`,
-          name: filename,
-        });
-      }
-    }
-
-    return new Response(JSON.stringify({ success: true, count: items.length, prefix, items }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-}
-
-// POST: Upload file to R2
-export async function onRequestPost(context: { request: Request; env: any }) {
-  const { request, env } = context;
-
-  const accountId = env.CLOUDFLARE_ACCOUNT_ID || ACCOUNT_ID;
-  const accessKeyId = env.R2_ACCESS_KEY_ID || ACCESS_KEY_ID;
-  const secretAccessKey = env.R2_SECRET_ACCESS_KEY || SECRET_ACCESS_KEY;
-  const bucket = env.R2_BUCKET_NAME || BUCKET_NAME;
-  const publicDomain = env.R2_PUBLIC_DOMAIN || PUBLIC_DOMAIN;
-
-  try {
-    const formData = await request.formData();
-    const file = formData.get("file") as File;
-    const folder = (formData.get("folder") as string) || "Alive_Model/";
-    let customFilename = (formData.get("filename") as string) || "";
-
-    if (!file) {
-      return new Response(JSON.stringify({ error: "No file uploaded" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Sanitize filename
-    const origName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const filename = customFilename ? customFilename.replace(/[^a-zA-Z0-9._-]/g, "_") : origName;
-    
-    // Ensure folder has trailing slash
-    const normalizedFolder = folder.endsWith("/") ? folder : `${folder}/`;
-    const key = `${normalizedFolder}${filename}`;
-
-    const host = `${accountId}.r2.cloudflarestorage.com`;
-    const canonicalUri = `/${bucket}/${key}`;
-    const endpoint = `https://${host}${canonicalUri}`;
-
-    const arrayBuffer = await file.arrayBuffer();
-    const contentType = file.type || "image/jpeg";
-
-    const now = new Date();
-    const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
-    const dateStamp = amzDate.substring(0, 8);
-    const region = "auto";
-    const service = "s3";
-
-    const payloadHash = await sha256Hex(arrayBuffer);
-    const canonicalHeaders = `content-type:${contentType}\nhost:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
-    const signedHeaders = "content-type;host;x-amz-content-sha256;x-amz-date";
-
-    const canonicalRequest = ["PUT", canonicalUri, "", canonicalHeaders, signedHeaders, payloadHash].join("\n");
-    const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
-    const stringToSign = ["AWS4-HMAC-SHA256", amzDate, credentialScope, await sha256Hex(canonicalRequest)].join("\n");
-
-    const kDate = await hmac("AWS4" + secretAccessKey, dateStamp);
-    const kRegion = await hmac(kDate, region);
-    const kService = await hmac(kRegion, service);
-    const kSigning = await hmac(kService, "aws4_request");
-    const signature = bufferToHex(await hmac(kSigning, stringToSign));
-
-    const authHeader = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
-
-    const r2Res = await fetch(endpoint, {
-      method: "PUT",
-      headers: {
-        host: host,
-        "content-type": contentType,
-        "x-amz-date": amzDate,
-        "x-amz-content-sha256": payloadHash,
-        Authorization: authHeader,
-      },
-      body: arrayBuffer,
-    });
-
-    if (!r2Res.ok) {
-      const errText = await r2Res.text();
-      return new Response(JSON.stringify({ error: `R2 Upload Failed: ${errText}` }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const publicUrl = `${publicDomain}/${key}`;
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        key,
-        url: publicUrl,
-        filename,
-        size: file.size,
-        contentType,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
+// Use the existing Cloudflare R2 binding; no embedded S3 credentials.
+import { json } from "../lib/admin-auth";
+const validKey = (key: unknown): key is string =>
+  typeof key === "string" &&
+  key.length > 0 &&
+  key.length <= 500 &&
+  !key.includes("..") &&
+  !/[\x00-\x1f\\]/.test(key) &&
+  !key.startsWith("/");
+const publicUrl = (env: any, key: string) =>
+  `${(env.R2_PUBLIC_DOMAIN || "").replace(/\/$/, "")}/${key.split("/").map(encodeURIComponent).join("/")}`;
+export async function onRequestGet({
+  request,
+  env,
+}: {
+  request: Request;
+  env: any;
+}) {
+  if (!env.CHOOMCHAM_R2_BUCKET || !env.R2_PUBLIC_DOMAIN)
+    return json(
+      { error: "ยังไม่ได้ตั้งค่า R2 binding และ public domain" },
+      503,
     );
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
+  const url = new URL(request.url),
+    prefix = url.searchParams.get("prefix") || "Alive_Model/";
+  if (!validKey(prefix)) return json({ error: "โฟลเดอร์ไม่ถูกต้อง" }, 400);
+  try {
+    const list = await env.CHOOMCHAM_R2_BUCKET.list({
+      prefix,
+      limit: 1000,
+      cursor: url.searchParams.get("cursor") || undefined,
     });
+    const items = list.objects
+      .filter((o: any) => !o.key.endsWith("/"))
+      .map((o: any) => ({
+        key: o.key,
+        size: o.size,
+        lastModified: o.uploaded.toISOString(),
+        url: publicUrl(env, o.key),
+        name: o.key.split("/").pop(),
+      }));
+    return json({
+      success: true,
+      count: items.length,
+      prefix,
+      items,
+      cursor: list.truncated ? list.cursor : null,
+    });
+  } catch {
+    return json({ error: "โหลดสื่อไม่สำเร็จ" }, 503);
   }
 }
-
-// DELETE: Remove object from R2
-export async function onRequestDelete(context: { request: Request; env: any }) {
-  const { request, env } = context;
-  const url = new URL(request.url);
-  const key = url.searchParams.get("key");
-
-  if (!key) {
-    return new Response(JSON.stringify({ error: "Missing key parameter" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  const accountId = env.CLOUDFLARE_ACCOUNT_ID || ACCOUNT_ID;
-  const accessKeyId = env.R2_ACCESS_KEY_ID || ACCESS_KEY_ID;
-  const secretAccessKey = env.R2_SECRET_ACCESS_KEY || SECRET_ACCESS_KEY;
-  const bucket = env.R2_BUCKET_NAME || BUCKET_NAME;
-
+export async function onRequestPost({
+  request,
+  env,
+}: {
+  request: Request;
+  env: any;
+}) {
+  if (!env.CHOOMCHAM_R2_BUCKET || !env.R2_PUBLIC_DOMAIN)
+    return json(
+      { error: "ยังไม่ได้ตั้งค่า R2 binding และ public domain" },
+      503,
+    );
+  if (Number(request.headers.get("Content-Length")) > 21 * 1024 * 1024)
+    return json({ error: "ไฟล์ใหญ่เกินไป" }, 413);
   try {
-    const host = `${accountId}.r2.cloudflarestorage.com`;
-    const canonicalUri = `/${bucket}/${key}`;
-    const endpoint = `https://${host}${canonicalUri}`;
-
-    const now = new Date();
-    const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
-    const dateStamp = amzDate.substring(0, 8);
-    const region = "auto";
-    const service = "s3";
-
-    const payloadHash = await sha256Hex("");
-    const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
-    const signedHeaders = "host;x-amz-content-sha256;x-amz-date";
-
-    const canonicalRequest = ["DELETE", canonicalUri, "", canonicalHeaders, signedHeaders, payloadHash].join("\n");
-    const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
-    const stringToSign = ["AWS4-HMAC-SHA256", amzDate, credentialScope, await sha256Hex(canonicalRequest)].join("\n");
-
-    const kDate = await hmac("AWS4" + secretAccessKey, dateStamp);
-    const kRegion = await hmac(kDate, region);
-    const kService = await hmac(kRegion, service);
-    const kSigning = await hmac(kService, "aws4_request");
-    const signature = bufferToHex(await hmac(kSigning, stringToSign));
-
-    const authHeader = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
-
-    const r2Res = await fetch(endpoint, {
-      method: "DELETE",
-      headers: {
-        host: host,
-        "x-amz-date": amzDate,
-        "x-amz-content-sha256": payloadHash,
-        Authorization: authHeader,
+    const form = await request.formData(),
+      file = form.get("file");
+    if (
+      !(file instanceof File) ||
+      file.size > 20 * 1024 * 1024 ||
+      ![
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "application/pdf",
+      ].includes(file.type)
+    )
+      return json({ error: "รองรับภาพและ PDF ขนาดไม่เกิน 20 MB" }, 400);
+    const folder = String(form.get("folder") || "Alive_Model/"),
+      supplied = String(form.get("filename") || "");
+    const filename = (
+      supplied || `${crypto.randomUUID()}-${file.name}`
+    ).replace(/[^a-zA-Z0-9._-]/g, "_");
+    const key = `${folder.replace(/\/$/, "")}/${filename}`;
+    if (!validKey(key)) return json({ error: "รหัสไฟล์ไม่ถูกต้อง" }, 400);
+    const saved = await env.CHOOMCHAM_R2_BUCKET.put(
+      key,
+      await file.arrayBuffer(),
+      {
+        httpMetadata: { contentType: file.type },
+        onlyIf: new Headers({ "If-None-Match": "*" }),
       },
+    );
+    if (!saved)
+      return json({ error: "ชื่อไฟล์นี้มีอยู่แล้ว กรุณาใช้ชื่อใหม่" }, 409);
+    return json({
+      success: true,
+      key,
+      url: publicUrl(env, key),
+      filename,
+      size: file.size,
+      contentType: file.type,
     });
-
-    if (!r2Res.ok) {
-      const errText = await r2Res.text();
-      return new Response(JSON.stringify({ error: `R2 Delete Failed: ${errText}` }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(JSON.stringify({ success: true, key }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+  } catch {
+    return json({ error: "อัปโหลดไม่สำเร็จ" }, 503);
+  }
+}
+export async function onRequestDelete({
+  request,
+  env,
+}: {
+  request: Request;
+  env: any;
+}) {
+  if (!env.CHOOMCHAM_R2_BUCKET)
+    return json({ error: "ยังไม่ได้ตั้งค่า R2 binding" }, 503);
+  const key = new URL(request.url).searchParams.get("key");
+  if (!validKey(key)) return json({ error: "รหัสไฟล์ไม่ถูกต้อง" }, 400);
+  // Recoverable archive rather than permanent object deletion.
+  try {
+    const original = await env.CHOOMCHAM_R2_BUCKET.get(key);
+    if (!original) return json({ error: "ไม่พบไฟล์" }, 404);
+    const archiveKey = `_archive/${crypto.randomUUID()}/${key}`;
+    const archive = await env.CHOOMCHAM_R2_BUCKET.put(
+      archiveKey,
+      original.body,
+      {
+        httpMetadata: original.httpMetadata,
+        customMetadata: {
+          originalKey: key,
+          archivedAt: new Date().toISOString(),
+        },
+      },
+    );
+    if (!archive) return json({ error: "สำรองไฟล์ไม่สำเร็จ" }, 503);
+    await env.CHOOMCHAM_R2_BUCKET.delete(key);
+    return json({ success: true, archiveKey });
+  } catch {
+    return json({ error: "เก็บไฟล์ถาวรไม่สำเร็จ" }, 503);
   }
 }

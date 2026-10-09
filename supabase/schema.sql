@@ -23,7 +23,7 @@ create table if not exists public.leads (
   email_or_line text not null,
   team_size text,
   score integer not null,
-  result_level text not null check (result_level in ('ALIVE', 'TIRED', 'FADED', 'ZOMBIE')),
+  result_level text not null check (result_level in ('ALIVE', 'TIRED', 'FADED', 'ZOMBIE', 'CONSULTATION', 'PROGRAM_INQUIRY', 'PROPOSAL_REQUEST', 'INQUIRY', 'CONSULT_BRIEF', 'PROPOSAL')),
   answers jsonb not null, -- array of scores
   dimensions_scores jsonb, -- breakdown across 7 dimensions (energy, meaning, connection, etc.)
   status text default 'NEW' not null check (status in ('NEW', 'CONTACTED', 'CONSULTATION', 'PROPOSAL', 'WON', 'LOST')),
@@ -39,7 +39,7 @@ create table if not exists public.transformation_projects (
   id uuid primary key default gen_random_uuid(),
   lead_id uuid references public.leads(id),
   client_name text not null,
-  program_name text not null check (program_name in ('REBORN PEOPLE', 'ALIVE TEAM', 'REBORN LEADER', 'LIVING ORGANIZATION')),
+  program_name text not null check (program_name in ('REBORN', 'COMMUNICATION', 'TEAM', 'LEADER', 'CULTURE', 'LIVING ORGANIZATION', 'REBORN PEOPLE', 'ALIVE TEAM', 'REBORN LEADER')),
   participants_count integer default 0,
   current_stage text default 'RESET' not null check (current_stage in ('RESET', 'RECONNECT', 'RECHARGE', 'REIMAGINE', 'RECREATE', 'COMPLETED')),
   stage_milestones jsonb default '{"reset": false, "reconnect": false, "recharge": false, "reimagine": false, "recreate": false}'::jsonb,
@@ -86,15 +86,11 @@ alter table public.transformation_projects enable row level security;
 alter table public.partner_contributions enable row level security;
 alter table public.r2_media_assets enable row level security;
 
--- Leads RLS: Anonymous users can INSERT (Quiz submission), Authenticated users can SELECT & UPDATE
-create policy "Allow anonymous insert on leads" on public.leads for insert to anon with check (true);
-create policy "Allow authenticated all on leads" on public.leads for all to authenticated using (true);
-
--- Admin & Operational Tables: Authenticated users only
-create policy "Allow authenticated read admin_profiles" on public.admin_profiles for select to authenticated using (true);
-create policy "Allow authenticated all on transformation_projects" on public.transformation_projects for all to authenticated using (true);
-create policy "Allow authenticated all on partner_contributions" on public.partner_contributions for all to authenticated using (true);
-create policy "Allow authenticated all on r2_media_assets" on public.r2_media_assets for all to authenticated using (true);
+-- No browser role may access private tables. Admin APIs authorize requests server-side.
+revoke all on public.admin_profiles, public.leads, public.transformation_projects,
+ public.partner_contributions, public.r2_media_assets from anon, authenticated;
+grant select,insert,update on public.leads,public.transformation_projects,public.partner_contributions to service_role;
+grant select on public.admin_profiles,public.r2_media_assets to service_role;
 
 -- Auto updated_at Trigger
 create or replace function public.update_updated_at_column()

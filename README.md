@@ -1,87 +1,43 @@
-# Welcome to React Router!
+# CHOOMCHAM HOUSE
 
-A modern, production-ready template for building full-stack React applications using React Router.
+เว็บไซต์ 5 Levels of Growth + Flagship และระบบ Admin สำหรับ CRM, ออกแบบหลักสูตร/Proposal, โครงการอบรม, Partner Ledger และสื่อ
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+React Router SPA/prerender + Cloudflare Pages Functions + Supabase Auth/PostgreSQL + R2
 
-## Features
+## เริ่มต้น
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
-
-## Getting Started
-
-### Installation
-
-Install the dependencies:
-
-```bash
-npm install
-```
-
-### Development
-
-Start the development server with HMR:
-
-```bash
+```sh
+npm ci
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+## ตรวจโค้ดและฐานข้อมูลแยก
 
-## Building for Production
+```sh
+npm run typecheck
+npm run test:programs
+npm run test:courses
+npm run test:admin
+npm run test:db
+npm run build
+npx wrangler pages functions build functions --outdir /tmp/choomcham-functions-check
+```
 
-Create a production build:
+## ตรวจ UI ด้วย fixtures (ไม่มี production side effects)
 
-```bash
+```sh
+VITE_SUPABASE_URL=https://admin-test.invalid VITE_SUPABASE_ANON_KEY=test-public-placeholder npm run build
+npx playwright install chromium
+npm run test:ui
 npm run build
 ```
 
-## Deployment
+ใช้ provider จริงสำหรับ production build เท่านั้น ค่า fixture ใช้เฉพาะทดสอบ UI. `npm run dev` แสดง frontend; ต้องใช้ Pages runtime หรือ deployment เพื่อให้ `/api/*` ทำงานจริง
 
-### Docker Deployment
+## ตั้งค่าระบบและนำขึ้นใช้งาน
 
-To build and run using Docker:
+อ่าน [ผลตรวจและคู่มือ production](docs/admin-production-readiness.md) ก่อน deploy โดยเฉพาะ migration, server allowlists, การเปลี่ยนคีย์เดิม และการเคลียร์ข้อมูลทดสอบแบบกู้คืนได้ ดู [Course Designer](docs/admin-course-designer.md) สำหรับขั้นตอนออกแบบหลักสูตร
 
-```bash
-docker build -t my-app .
+การบันทึกข้อมูล Admin ใช้ API ที่ตรวจ Supabase user + email confirmation + allowlist ฝั่งเซิร์ฟเวอร์ ค่า public `VITE_*` ต้องไม่มี service-role หรือ secret. ชุดข้อมูลตัวอย่างไม่ถูก preload และสคริปต์ทดสอบเก่าที่มีผลต่อ production ถูกปิดแล้ว
 
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+สถานะชุดอัปเดต: ผ่าน automated checks ในสภาพแวดล้อมแยก แต่ต้องตั้งค่า/นำขึ้นโฮสต์และตรวจระบบจริงตามคู่มือก่อนเปิดใช้งาน

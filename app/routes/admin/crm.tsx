@@ -1,15 +1,16 @@
+import { useAdminUser } from "~/components/admin/AdminGuard";
 import React, { useState, useEffect } from "react";
 import { FORMAT_LABELS } from "~/lib/proposal-request";
 import { AdminLayout } from "~/components/admin/AdminLayout";
-import { 
-  Building2, 
-  Phone, 
-  Mail, 
-  Clock, 
-  CheckCircle2, 
-  ChevronRight, 
-  Plus, 
-  Filter, 
+import {
+  Building2,
+  Phone,
+  Mail,
+  Clock,
+  CheckCircle2,
+  ChevronRight,
+  Plus,
+  Filter,
   Search,
   MessageSquare,
   Sparkles,
@@ -21,13 +22,13 @@ import {
   ExternalLink,
   PhoneCall,
   Calendar,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
-import { 
-  fetchLeadsFromSupabase, 
-  updateLeadStatusInSupabase, 
+import {
+  fetchLeadsFromSupabase,
+  updateLeadStatusInSupabase,
   deleteLeadFromSupabase,
-  subscribeToLeadsRealtime 
+  subscribeToLeadsRealtime,
 } from "~/lib/services";
 import { exportLeadsToExcel } from "~/lib/excel";
 
@@ -40,7 +41,8 @@ export interface CRMLead {
   teamSize: string;
   score: number;
   resultLevel: "ALIVE" | "TIRED" | "FADED" | "ZOMBIE" | string;
-  status: "NEW" | "CONTACTED" | "CONSULTATION" | "PROPOSAL" | "WON" | "LOST" | string;
+  status:
+    "NEW" | "CONTACTED" | "CONSULTATION" | "PROPOSAL" | "WON" | "LOST" | string;
   notes?: string;
   createdAt: string;
   rawCreatedAt?: string;
@@ -48,24 +50,46 @@ export interface CRMLead {
 }
 
 const PIPELINE_COLUMNS = [
-  { id: "NEW", title: "New Inquiries", badge: "bg-blue-50 text-blue-700 border-blue-200" },
-  { id: "CONTACTED", title: "Contacted / Qualified", badge: "bg-purple-50 text-purple-700 border-purple-200" },
-  { id: "CONSULTATION", title: "Consultation Booked", badge: "bg-amber-50 text-amber-700 border-amber-200" },
-  { id: "PROPOSAL", title: "Proposal Sent", badge: "bg-pink-50 text-pink-700 border-pink-200" },
-  { id: "WON", title: "Won / Active Project", badge: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  {
+    id: "NEW",
+    title: "New Inquiries",
+    badge: "bg-blue-50 text-blue-700 border-blue-200",
+  },
+  {
+    id: "CONTACTED",
+    title: "Contacted / Qualified",
+    badge: "bg-purple-50 text-purple-700 border-purple-200",
+  },
+  {
+    id: "CONSULTATION",
+    title: "Consultation Booked",
+    badge: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  {
+    id: "PROPOSAL",
+    title: "Proposal Sent",
+    badge: "bg-pink-50 text-pink-700 border-pink-200",
+  },
+  {
+    id: "WON",
+    title: "Won / Active Project",
+    badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
 ];
 
 export function meta() {
-  return [
-    { title: "B2B CRM Pipeline | Choomcham House OS" },
-  ];
+  return [{ title: "B2B CRM Pipeline | Choomcham House OS" }];
 }
 
 export default function AdminCRM() {
+  const admin = useAdminUser();
+  const [loadError, setLoadError] = useState("");
   const [leads, setLeads] = useState<CRMLead[]>([]);
   const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [leadTypeFilter, setLeadTypeFilter] = useState<"ALL" | "QUIZ" | "CONSULT" | "PROPOSAL">("ALL");
+  const [leadTypeFilter, setLeadTypeFilter] = useState<
+    "ALL" | "QUIZ" | "CONSULT" | "PROPOSAL"
+  >("ALL");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [liveNotification, setLiveNotification] = useState<string | null>(null);
@@ -80,7 +104,7 @@ export default function AdminCRM() {
           month: "short",
           year: "numeric",
           hour: "2-digit",
-          minute: "2-digit"
+          minute: "2-digit",
         });
       }
     } catch {
@@ -93,20 +117,25 @@ export default function AdminCRM() {
       company: item.company || "-",
       position: item.position || "-",
       emailOrLine: item.email_or_line || "-",
-      teamSize: item.team_size || (item.dimensions_scores?.program_interest ? `สนใจ: ${item.dimensions_scores.program_interest}` : "ไม่ได้ระบุ"),
+      teamSize:
+        item.team_size ||
+        (item.dimensions_scores?.program_interest
+          ? `สนใจ: ${item.dimensions_scores.program_interest}`
+          : "ไม่ได้ระบุ"),
       score: item.score !== undefined ? item.score : 0,
       resultLevel: item.result_level || "ZOMBIE",
       status: item.status || "NEW",
       notes: item.notes || "",
       createdAt: dateFormatted,
       rawCreatedAt: item.created_at,
-      dimensions_scores: item.dimensions_scores
+      dimensions_scores: item.dimensions_scores,
     };
   };
 
   // Load real leads from Supabase on mount
   const loadLeads = async () => {
     setIsRefreshing(true);
+    setLoadError("");
     try {
       const res = await fetchLeadsFromSupabase();
       if (res.success && res.data) {
@@ -114,7 +143,7 @@ export default function AdminCRM() {
         setLeads(mappedLeads);
       }
     } catch (e) {
-      console.error("Failed to load Supabase leads", e);
+      setLoadError((e as Error).message);
     } finally {
       setIsRefreshing(false);
       setIsLoading(false);
@@ -125,24 +154,8 @@ export default function AdminCRM() {
     loadLeads();
 
     // Setup real-time listener for incoming quiz submissions and contact form leads
-    const unsubscribe = subscribeToLeadsRealtime((payload) => {
-      if (payload.eventType === "INSERT") {
-        const newLead = mapDbLead(payload.new);
-        setLeads(prev => [newLead, ...prev.filter(l => l.id !== newLead.id)]);
-        setLiveNotification(`⚡ มี Lead ใหม่เข้ามา: ${newLead.company} (${newLead.name})`);
-        setTimeout(() => setLiveNotification(null), 6000);
-      } else if (payload.eventType === "UPDATE") {
-        const updated = mapDbLead(payload.new);
-        setLeads(prev => prev.map(l => l.id === updated.id ? updated : l));
-        if (selectedLead?.id === updated.id) {
-          setSelectedLead(updated);
-        }
-      } else if (payload.eventType === "DELETE") {
-        setLeads(prev => prev.filter(l => l.id !== payload.old.id));
-        if (selectedLead?.id === payload.old.id) {
-          setSelectedLead(null);
-        }
-      }
+    const unsubscribe = subscribeToLeadsRealtime(() => {
+      void loadLeads();
     });
 
     return () => {
@@ -151,20 +164,31 @@ export default function AdminCRM() {
   }, []);
 
   const handleStatusChange = async (leadId: string, newStatus: string) => {
-    setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: newStatus } : l));
-    if (selectedLead && selectedLead.id === leadId) {
-      setSelectedLead(prev => prev ? { ...prev, status: newStatus } : null);
+    try {
+      await updateLeadStatusInSupabase(null, leadId, newStatus);
+      setLeads((prev) =>
+        prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l)),
+      );
+      setSelectedLead((prev) =>
+        prev?.id === leadId ? { ...prev, status: newStatus } : prev,
+      );
+    } catch (e) {
+      setLoadError((e as Error).message);
     }
-    await updateLeadStatusInSupabase(null, leadId, newStatus);
   };
-
   const handleDeleteLead = async (leadId: string, name: string) => {
-    if (confirm(`คุณต้องการลบข้อมูล Lead ของ "${name}" ใช่หรือไม่?`)) {
-      setLeads(prev => prev.filter(l => l.id !== leadId));
-      if (selectedLead && selectedLead.id === leadId) {
-        setSelectedLead(null);
-      }
+    if (
+      !confirm(
+        `เก็บ Lead ของ "${name}" ถาวรจากหน้ารายงาน? ผู้ดูแลสามารถกู้คืนได้ในฐานข้อมูล`,
+      )
+    )
+      return;
+    try {
       await deleteLeadFromSupabase(null, leadId);
+      setLeads((prev) => prev.filter((l) => l.id !== leadId));
+      setSelectedLead((prev) => (prev?.id === leadId ? null : prev));
+    } catch (e) {
+      setLoadError((e as Error).message);
     }
   };
 
@@ -173,24 +197,38 @@ export default function AdminCRM() {
   };
 
   const handleExportCSV = () => {
-    const headers = "ID,Name,Company,Position,Contact,Score,ResultLevel,Status,CreatedAt\n";
-    const rows = leads.map(l => 
-      `"${l.id}","${l.name}","${l.company}","${l.position}","${l.emailOrLine}",${l.score},"${l.resultLevel}","${l.status}","${l.createdAt}"`
-    ).join("\n");
+    const headers =
+      "ID,Name,Company,Position,Contact,Score,ResultLevel,Status,CreatedAt\n";
+    const cell = (v: unknown) => {
+      let s = String(v ?? "");
+      if (/^[=+@-]/.test(s)) s = "\'" + s;
+      return s.replaceAll('"', '""');
+    };
+    const rows = leads
+      .map(
+        (l) =>
+          `"${cell(l.id)}","${cell(l.name)}","${cell(l.company)}","${cell(l.position)}","${cell(l.emailOrLine)}",${l.score},"${cell(l.resultLevel)}","${cell(l.status)}","${cell(l.createdAt)}"`,
+      )
+      .join("\n");
 
-    const blob = new Blob(["\uFEFF" + headers + rows], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob(["\uFEFF" + headers + rows], {
+      type: "text/csv;charset=utf-8;",
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `choomcham_leads_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute(
+      "download",
+      `choomcham_leads_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  const filteredLeads = leads.filter(l => {
-    const matchSearch = 
-      l.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredLeads = leads.filter((l) => {
+    const matchSearch =
+      l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       l.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
       l.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
       l.emailOrLine.toLowerCase().includes(searchTerm.toLowerCase());
@@ -198,13 +236,27 @@ export default function AdminCRM() {
     if (!matchSearch) return false;
 
     if (leadTypeFilter === "QUIZ") {
-      return l.score > 0 || l.dimensions_scores?.form_type === "quiz" || ["ALIVE", "TIRED", "FADED", "ZOMBIE"].includes(l.resultLevel);
+      return (
+        l.score > 0 ||
+        l.dimensions_scores?.form_type === "quiz" ||
+        ["ALIVE", "TIRED", "FADED", "ZOMBIE"].includes(l.resultLevel)
+      );
     }
     if (leadTypeFilter === "CONSULT") {
-      return l.resultLevel === "CONSULT_BRIEF" || l.resultLevel === "CONSULTATION" || l.resultLevel === "PROGRAM_INQUIRY" || l.dimensions_scores?.form_type === "contact";
+      return (
+        l.resultLevel === "CONSULT_BRIEF" ||
+        l.resultLevel === "CONSULTATION" ||
+        l.resultLevel === "PROGRAM_INQUIRY" ||
+        l.dimensions_scores?.form_type === "contact"
+      );
     }
     if (leadTypeFilter === "PROPOSAL") {
-      return l.resultLevel === "PROPOSAL_REQUEST" || l.resultLevel === "PROPOSAL" || l.status === "PROPOSAL" || !!l.dimensions_scores?.program_interest;
+      return (
+        l.resultLevel === "PROPOSAL_REQUEST" ||
+        l.resultLevel === "PROPOSAL" ||
+        l.status === "PROPOSAL" ||
+        !!l.dimensions_scores?.program_interest
+      );
     }
     return true;
   });
@@ -217,15 +269,21 @@ export default function AdminCRM() {
       isPhone: !!phoneMatch,
       phone: phoneMatch ? phoneMatch[0] : "",
       isEmail,
-      isLine: contactStr.toLowerCase().includes("line") || (!isEmail && !phoneMatch)
+      isLine:
+        contactStr.toLowerCase().includes("line") || (!isEmail && !phoneMatch),
     };
   };
 
   return (
     <AdminLayout
       title="B2B CRM Pipeline Management"
-      subtitle="ติดตามและจัดการข้อมูลผู้ทำแบบประเมินและผู้ติดต่อเพื่อรับบริการ Reborn องค์กร (Real-time Supabase Data)"
+      subtitle="ติดตามและจัดการข้อมูลผู้ทำแบบประเมินและผู้ติดต่อเพื่อรับบริการ Reborn องค์กร (ตรวจข้อมูลผ่านระบบผู้ดูแล)"
     >
+      {loadError && (
+        <p role="alert" className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl">
+          {loadError} · ตัวเลขด้านล่างอาจยังไม่เป็นปัจจุบัน
+        </p>
+      )}
       {/* Real-time Notification Banner */}
       {liveNotification && (
         <div className="mb-4 p-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl shadow-lg flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
@@ -233,7 +291,7 @@ export default function AdminCRM() {
             <span className="animate-ping w-2 h-2 rounded-full bg-yellow-300"></span>
             <span>{liveNotification}</span>
           </div>
-          <button 
+          <button
             onClick={() => setLiveNotification(null)}
             className="text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded-lg"
           >
@@ -262,7 +320,7 @@ export default function AdminCRM() {
               : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
           }`}
         >
-          🧟 Quiz Diagnostic ({leads.filter(l => l.score > 0).length})
+          🧟 Quiz Diagnostic ({leads.filter((l) => l.score > 0).length})
         </button>
         <button
           onClick={() => setLeadTypeFilter("CONSULT")}
@@ -306,14 +364,21 @@ export default function AdminCRM() {
             className="p-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs transition-colors flex items-center gap-1.5"
             title="รีเฟรชข้อมูลจาก Supabase"
           >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-purple-600" : ""}`} />
-            <span className="hidden sm:inline text-xs font-semibold">รีเฟรช</span>
+            <RefreshCw
+              className={`w-4 h-4 ${isRefreshing ? "animate-spin text-purple-600" : ""}`}
+            />
+            <span className="hidden sm:inline text-xs font-semibold">
+              รีเฟรช
+            </span>
           </button>
         </div>
 
         <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
           <div className="text-xs text-slate-500">
-            <span className="font-semibold text-slate-800">{filteredLeads.length}</span> รายการ
+            <span className="font-semibold text-slate-800">
+              {filteredLeads.length}
+            </span>{" "}
+            รายการ
           </div>
 
           {/* Excel Export Button */}
@@ -338,16 +403,22 @@ export default function AdminCRM() {
       {isLoading ? (
         <div className="py-20 text-center">
           <RefreshCw className="w-8 h-8 animate-spin text-purple-600 mx-auto mb-3" />
-          <p className="text-sm font-semibold text-slate-600">กำลังโหลดข้อมูล Real-time จาก Supabase Database...</p>
+          <p className="text-sm font-semibold text-slate-600">
+            กำลังโหลดข้อมูล จากระบบผู้ดูแล...
+          </p>
         </div>
       ) : leads.length === 0 ? (
         <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-xs max-w-lg mx-auto my-12">
           <div className="w-16 h-16 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mx-auto mb-4">
             <Building2 className="w-8 h-8" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900 mb-2">ยังไม่มีข้อมูล Lead ในระบบ</h3>
+          <h3 className="text-lg font-bold text-slate-900 mb-2">
+            ยังไม่มีข้อมูล Lead ในระบบ
+          </h3>
           <p className="text-xs text-slate-500 mb-6">
-            เมื่อมีผู้เข้าทำแบบประเมิน Zombie Index™ หรือกรอกฟอร์มนัดพูดคุยจากหน้าเว็บไซต์ ข้อมูลจะปรากฏที่นี่แบบ Real-time ทันที
+            เมื่อมีผู้เข้าทำแบบประเมิน Zombie Index™
+            หรือกรอกฟอร์มนัดพูดคุยจากหน้าเว็บไซต์
+            ข้อมูลจะปรากฏที่นี่เมื่อรีเฟรชข้อมูล
           </p>
           <a
             href="/#zombie-check"
@@ -363,12 +434,17 @@ export default function AdminCRM() {
         /* Kanban Board Layout */
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 overflow-x-auto pb-4">
           {PIPELINE_COLUMNS.map((col) => {
-            const colLeads = filteredLeads.filter(l => l.status === col.id);
+            const colLeads = filteredLeads.filter((l) => l.status === col.id);
             return (
-              <div key={col.id} className="bg-slate-100/80 rounded-2xl p-3 flex flex-col min-w-[260px] border border-slate-200/70">
+              <div
+                key={col.id}
+                className="bg-slate-100/80 rounded-2xl p-3 flex flex-col min-w-[260px] border border-slate-200/70"
+              >
                 {/* Column Header */}
                 <div className="flex items-center justify-between mb-3 px-1">
-                  <span className="text-xs font-bold text-slate-700 tracking-tight">{col.title}</span>
+                  <span className="text-xs font-bold text-slate-700 tracking-tight">
+                    {col.title}
+                  </span>
                   <span className="text-[11px] font-semibold bg-white text-slate-600 px-2 py-0.5 rounded-full shadow-2xs border border-slate-200">
                     {colLeads.length}
                   </span>
@@ -383,22 +459,33 @@ export default function AdminCRM() {
                       className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-md hover:border-purple-300 transition-all cursor-pointer group"
                     >
                       <div className="flex items-start justify-between gap-2 mb-2">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                          lead.resultLevel === "ZOMBIE" ? "bg-rose-100 text-rose-700" :
-                          lead.resultLevel === "FADED" ? "bg-orange-100 text-orange-700" :
-                          lead.resultLevel === "TIRED" ? "bg-amber-100 text-amber-700" :
-                          lead.resultLevel === "ALIVE" ? "bg-emerald-100 text-emerald-700" :
-                          "bg-purple-100 text-purple-700"
-                        }`}>
-                          {lead.resultLevel} {lead.score > 0 ? `(${lead.score}/40)` : ""}
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                            lead.resultLevel === "ZOMBIE"
+                              ? "bg-rose-100 text-rose-700"
+                              : lead.resultLevel === "FADED"
+                                ? "bg-orange-100 text-orange-700"
+                                : lead.resultLevel === "TIRED"
+                                  ? "bg-amber-100 text-amber-700"
+                                  : lead.resultLevel === "ALIVE"
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : "bg-purple-100 text-purple-700"
+                          }`}
+                        >
+                          {lead.resultLevel}{" "}
+                          {lead.score > 0 ? `(${lead.score}/40)` : ""}
                         </span>
-                        <span className="text-[10px] text-slate-400">{lead.createdAt}</span>
+                        <span className="text-[10px] text-slate-400">
+                          {lead.createdAt}
+                        </span>
                       </div>
 
                       <h3 className="font-bold text-sm text-slate-900 group-hover:text-purple-600 transition-colors">
                         {lead.company}
                       </h3>
-                      <p className="text-xs text-slate-500 mb-2">{lead.name} • {lead.position}</p>
+                      <p className="text-xs text-slate-500 mb-2">
+                        {lead.name} • {lead.position}
+                      </p>
 
                       <div className="text-[11px] text-purple-700 font-medium bg-purple-50/60 px-2 py-1 rounded-md border border-purple-100/80 truncate mb-2">
                         📞 {lead.emailOrLine}
@@ -434,7 +521,9 @@ export default function AdminCRM() {
                   <span className="text-[11px] font-semibold text-purple-600 uppercase tracking-wider">
                     Lead Detail Overview
                   </span>
-                  <h2 className="text-xl font-bold text-slate-900 mt-0.5">{selectedLead.company}</h2>
+                  <h2 className="text-xl font-bold text-slate-900 mt-0.5">
+                    {selectedLead.company}
+                  </h2>
                 </div>
                 <button
                   onClick={() => setSelectedLead(null)}
@@ -453,7 +542,9 @@ export default function AdminCRM() {
                   {PIPELINE_COLUMNS.map((col) => (
                     <button
                       key={col.id}
-                      onClick={() => handleStatusChange(selectedLead.id, col.id)}
+                      onClick={() =>
+                        handleStatusChange(selectedLead.id, col.id)
+                      }
                       className={`px-3 py-2 text-xs font-semibold rounded-xl border transition-all ${
                         selectedLead.status === col.id
                           ? "bg-purple-600 text-white border-purple-600 shadow-xs"
@@ -474,7 +565,7 @@ export default function AdminCRM() {
                 <div className="grid grid-cols-2 gap-2">
                   {/* Phone Call */}
                   <a
-                    href={`tel:${selectedLead.emailOrLine.replace(/[^0-9+]/g, '')}`}
+                    href={`tel:${selectedLead.emailOrLine.replace(/[^0-9+]/g, "")}`}
                     className="flex items-center justify-center gap-2 p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold transition-colors"
                   >
                     <Phone className="w-3.5 h-3.5 text-emerald-600" />
@@ -483,7 +574,11 @@ export default function AdminCRM() {
 
                   {/* LINE OA / Line Add */}
                   <a
-                    href={selectedLead.emailOrLine.includes("@") ? `https://line.me/R/ti/p/~${selectedLead.emailOrLine.replace("LINE:", "").trim()}` : `https://line.me/R/ti/p/~${selectedLead.emailOrLine.replace("LINE:", "").trim()}`}
+                    href={
+                      selectedLead.emailOrLine.includes("@")
+                        ? `https://line.me/R/ti/p/~${selectedLead.emailOrLine.replace("LINE:", "").trim()}`
+                        : `https://line.me/R/ti/p/~${selectedLead.emailOrLine.replace("LINE:", "").trim()}`
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2 p-2.5 bg-green-50 hover:bg-green-100 text-green-800 border border-green-200 rounded-xl text-xs font-bold transition-colors"
@@ -506,54 +601,133 @@ export default function AdminCRM() {
               {/* Lead Info Details */}
               <div className="space-y-3.5 bg-white p-4 rounded-2xl border border-slate-200 mb-5">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 font-medium">ชื่อผู้ติดต่อ:</span>
-                  <span className="font-bold text-slate-900">{selectedLead.name}</span>
+                  <span className="text-slate-500 font-medium">
+                    ชื่อผู้ติดต่อ:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {selectedLead.name}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 font-medium">ตำแหน่งงาน:</span>
-                  <span className="font-semibold text-slate-800">{selectedLead.position}</span>
+                  <span className="text-slate-500 font-medium">
+                    ตำแหน่งงาน:
+                  </span>
+                  <span className="font-semibold text-slate-800">
+                    {selectedLead.position}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 font-medium">ช่องทางติดต่อ:</span>
-                  <span className="font-bold text-purple-700 select-all">{selectedLead.emailOrLine}</span>
+                  <span className="text-slate-500 font-medium">
+                    ช่องทางติดต่อ:
+                  </span>
+                  <span className="font-bold text-purple-700 select-all">
+                    {selectedLead.emailOrLine}
+                  </span>
                 </div>
                 <div className="flex justify-between items-start text-xs">
-                  <span className="text-slate-500 font-medium">หลักสูตร / ความต้องการ:</span>
-                  <span className="font-semibold text-slate-800 text-right max-w-[200px]">{selectedLead.dimensions_scores?.program_interest || selectedLead.teamSize}</span>
+                  <span className="text-slate-500 font-medium">
+                    หลักสูตร / ความต้องการ:
+                  </span>
+                  <span className="font-semibold text-slate-800 text-right max-w-[200px]">
+                    {selectedLead.dimensions_scores?.program_interest ||
+                      selectedLead.teamSize}
+                  </span>
                 </div>
                 {selectedLead.dimensions_scores?.timeline && (
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-500 font-medium">กรอบเวลาจัดอบรม:</span>
-                    <span className="font-semibold text-amber-700">{selectedLead.dimensions_scores.timeline}</span>
+                    <span className="text-slate-500 font-medium">
+                      กรอบเวลาจัดอบรม:
+                    </span>
+                    <span className="font-semibold text-amber-700">
+                      {selectedLead.dimensions_scores.timeline}
+                    </span>
                   </div>
                 )}
                 {selectedLead.dimensions_scores?.details && (
                   <div className="flex flex-col gap-1 text-xs pt-1 border-t border-slate-100">
-                    <span className="text-slate-500 font-medium">รายละเอียดโจทย์เพิ่มเติม:</span>
-                    <span className="text-slate-700 bg-slate-50 p-2 rounded-lg leading-relaxed">{selectedLead.dimensions_scores.details}</span>
+                    <span className="text-slate-500 font-medium">
+                      รายละเอียดโจทย์เพิ่มเติม:
+                    </span>
+                    <span className="text-slate-700 bg-slate-50 p-2 rounded-lg leading-relaxed">
+                      {selectedLead.dimensions_scores.details}
+                    </span>
                   </div>
                 )}
-                {selectedLead.dimensions_scores?.proposal_brief && <div className="text-xs space-y-2 pt-3 border-t border-slate-100">
-                  <h4 className="font-bold text-purple-700">ข้อมูลออกแบบโปรแกรม</h4>
-                  <a className="block rounded-lg bg-purple-700 text-white p-3 font-semibold" href={`/admin/courses?leadId=${encodeURIComponent(selectedLead.id)}`}>ออกแบบหลักสูตรจากโจทย์องค์กรนี้ →</a>
-                  {[
-                    ["กลุ่มผู้เรียน", selectedLead.dimensions_scores.proposal_brief.audience],
-                    ["จำนวนผู้เรียน", `${selectedLead.dimensions_scores.proposal_brief.participants} คน`],
-                    ["รูปแบบ", FORMAT_LABELS[selectedLead.dimensions_scores.proposal_brief.format] || "ให้ทีมงานแนะนำ"],
-                    ["ระยะเวลา", selectedLead.dimensions_scores.proposal_brief.duration],
-                    ["สถานที่", selectedLead.dimensions_scores.proposal_brief.location],
-                    ["กรอบงบประมาณ", selectedLead.dimensions_scores.proposal_brief.budget],
-                    ["โทรศัพท์", selectedLead.dimensions_scores.proposal_brief.phone],
-                  ].map(([label, value]) => <div key={label} className="flex justify-between gap-3"><span className="text-slate-500">{label}</span><span className="text-right whitespace-pre-wrap break-words">{value || "ไม่ได้ระบุ"}</span></div>)}
-                  <a className="block font-semibold text-purple-700 underline" target="_blank" rel="noopener noreferrer" href={`/proposal?programSlug=${encodeURIComponent(selectedLead.dimensions_scores.program_slug)}`}>เปิดกรอบหลักสูตรเพื่อออกแบบ Proposal</a>
-                </div>}
+                {selectedLead.dimensions_scores?.proposal_brief && (
+                  <div className="text-xs space-y-2 pt-3 border-t border-slate-100">
+                    <h4 className="font-bold text-purple-700">
+                      ข้อมูลออกแบบโปรแกรม
+                    </h4>
+                    <a
+                      className="block rounded-lg bg-purple-700 text-white p-3 font-semibold"
+                      href={`/admin/courses?leadId=${encodeURIComponent(selectedLead.id)}`}
+                    >
+                      ออกแบบหลักสูตรจากโจทย์องค์กรนี้ →
+                    </a>
+                    {[
+                      [
+                        "กลุ่มผู้เรียน",
+                        selectedLead.dimensions_scores.proposal_brief.audience,
+                      ],
+                      [
+                        "จำนวนผู้เรียน",
+                        `${selectedLead.dimensions_scores.proposal_brief.participants} คน`,
+                      ],
+                      [
+                        "รูปแบบ",
+                        FORMAT_LABELS[
+                          selectedLead.dimensions_scores.proposal_brief.format
+                        ] || "ให้ทีมงานแนะนำ",
+                      ],
+                      [
+                        "ระยะเวลา",
+                        selectedLead.dimensions_scores.proposal_brief.duration,
+                      ],
+                      [
+                        "สถานที่",
+                        selectedLead.dimensions_scores.proposal_brief.location,
+                      ],
+                      [
+                        "กรอบงบประมาณ",
+                        selectedLead.dimensions_scores.proposal_brief.budget,
+                      ],
+                      [
+                        "โทรศัพท์",
+                        selectedLead.dimensions_scores.proposal_brief.phone,
+                      ],
+                    ].map(([label, value]) => (
+                      <div key={label} className="flex justify-between gap-3">
+                        <span className="text-slate-500">{label}</span>
+                        <span className="text-right whitespace-pre-wrap break-words">
+                          {value || "ไม่ได้ระบุ"}
+                        </span>
+                      </div>
+                    ))}
+                    <a
+                      className="block font-semibold text-purple-700 underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href={`/proposal?programSlug=${encodeURIComponent(selectedLead.dimensions_scores.program_slug)}`}
+                    >
+                      เปิดกรอบหลักสูตรเพื่อออกแบบ Proposal
+                    </a>
+                  </div>
+                )}
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 font-medium">วันที่บันทึก:</span>
-                  <span className="text-slate-600">{selectedLead.createdAt}</span>
+                  <span className="text-slate-500 font-medium">
+                    วันที่บันทึก:
+                  </span>
+                  <span className="text-slate-600">
+                    {selectedLead.createdAt}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-xs pt-2 border-t border-slate-100">
-                  <span className="text-slate-500 font-medium">ผลการประเมิน Zombie Index™:</span>
-                  <span className="font-bold text-rose-600">{selectedLead.resultLevel} ({selectedLead.score}/40)</span>
+                  <span className="text-slate-500 font-medium">
+                    ผลการประเมิน Zombie Index™:
+                  </span>
+                  <span className="font-bold text-rose-600">
+                    {selectedLead.resultLevel} ({selectedLead.score}/40)
+                  </span>
                 </div>
               </div>
 
@@ -564,7 +738,14 @@ export default function AdminCRM() {
                 </label>
                 <textarea
                   defaultValue={selectedLead.notes}
-                  onBlur={(e) => updateLeadStatusInSupabase(null, selectedLead.id, selectedLead.status, e.target.value)}
+                  onBlur={(e) => {
+                    void updateLeadStatusInSupabase(
+                      null,
+                      selectedLead.id,
+                      selectedLead.status,
+                      e.target.value,
+                    ).catch((error) => setLoadError(error.message));
+                  }}
                   rows={3}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:bg-white focus:outline-hidden focus:border-purple-500"
                   placeholder="บันทึกรายละเอียดการพูดคุย หรือโจทย์เฉพาะขององค์กร..."
@@ -575,16 +756,27 @@ export default function AdminCRM() {
               <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200/80 mb-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="w-4 h-4 text-purple-600" />
-                  <span className="text-xs font-bold text-purple-950">Choomcham Proposal & Quotation Engine</span>
+                  <span className="text-xs font-bold text-purple-950">
+                    Choomcham Proposal & Quotation Engine
+                  </span>
                 </div>
                 <p className="text-[11px] text-slate-600 mb-3 leading-relaxed">
-                  {selectedLead.dimensions_scores?.program_slug ? "เปิดกรอบหลักสูตรและข้อมูล brief เพื่อจัดทำข้อเสนอเฉพาะองค์กร ต้องยืนยันขอบเขตและราคาก่อนส่งลูกค้า" : `สร้างและออกใบเสนอราคาพร้อม 5-Stage Transformation Blueprint สำหรับองค์กร ${selectedLead.company}`}
+                  {selectedLead.dimensions_scores?.program_slug
+                    ? "เปิดกรอบหลักสูตรและข้อมูล brief เพื่อจัดทำข้อเสนอเฉพาะองค์กร ต้องยืนยันขอบเขตและราคาก่อนส่งลูกค้า"
+                    : `สร้างและออกใบเสนอราคาพร้อม 5-Stage Transformation Blueprint สำหรับองค์กร ${selectedLead.company}`}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {(() => {
-                    const targetProg = selectedLead.dimensions_scores?.program_interest || selectedLead.teamSize || "REBORN PEOPLE & ALIVE TEAM";
-                    const origin = typeof window !== "undefined" ? window.location.origin : "";
-                    const proposalUrl = selectedLead.dimensions_scores?.program_slug
+                    const targetProg =
+                      selectedLead.dimensions_scores?.program_interest ||
+                      selectedLead.teamSize ||
+                      "REBORN PEOPLE & ALIVE TEAM";
+                    const origin =
+                      typeof window !== "undefined"
+                        ? window.location.origin
+                        : "";
+                    const proposalUrl = selectedLead.dimensions_scores
+                      ?.program_slug
                       ? `${origin}/proposal?programSlug=${encodeURIComponent(selectedLead.dimensions_scores.program_slug)}`
                       : `${origin}/proposal?company=${encodeURIComponent(selectedLead.company)}&name=${encodeURIComponent(selectedLead.name)}&position=${encodeURIComponent(selectedLead.position)}&teamSize=${encodeURIComponent(selectedLead.teamSize)}&price=185000&program=${encodeURIComponent(targetProg)}`;
                     return (
@@ -596,18 +788,26 @@ export default function AdminCRM() {
                           className="flex-1 min-w-[130px] bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors"
                         >
                           <FileText className="w-3.5 h-3.5" />
-                          <span>{selectedLead.dimensions_scores?.program_slug ? "เปิด / พิมพ์กรอบหลักสูตร" : "เปิดดู / พิมพ์ Proposal"}</span>
+                          <span>
+                            {selectedLead.dimensions_scores?.program_slug
+                              ? "เปิด / พิมพ์กรอบหลักสูตร"
+                              : "เปิดดู / พิมพ์ Proposal"}
+                          </span>
                         </a>
-                        {!selectedLead.dimensions_scores?.program_slug && <a
-                          href={`/admin/proposals?company=${encodeURIComponent(selectedLead.company)}&name=${encodeURIComponent(selectedLead.name)}&position=${encodeURIComponent(selectedLead.position)}&teamSize=${encodeURIComponent(selectedLead.teamSize)}&program=${encodeURIComponent(targetProg)}`}
-                          className="px-3 py-2 bg-pink-50 hover:bg-pink-100 border border-pink-200 text-pink-800 font-semibold rounded-xl text-xs transition-colors flex items-center gap-1"
-                        >
-                          <span>ปรับแต่งใน Engine ➔</span>
-                        </a>}
+                        {!selectedLead.dimensions_scores?.program_slug && (
+                          <a
+                            href={`/admin/proposals?company=${encodeURIComponent(selectedLead.company)}&name=${encodeURIComponent(selectedLead.name)}&position=${encodeURIComponent(selectedLead.position)}&teamSize=${encodeURIComponent(selectedLead.teamSize)}&program=${encodeURIComponent(targetProg)}`}
+                            className="px-3 py-2 bg-pink-50 hover:bg-pink-100 border border-pink-200 text-pink-800 font-semibold rounded-xl text-xs transition-colors flex items-center gap-1"
+                          >
+                            <span>ปรับแต่งใน Engine ➔</span>
+                          </a>
+                        )}
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(proposalUrl);
-                            alert(`คัดลอกลิงก์ Proposal สำหรับ ${selectedLead.company} เรียบร้อยแล้ว!\nหลักสูตร: ${targetProg}\nสามารถส่งให้ลูกค้าเปิดดูหรือพิมพ์ได้ทันทีครับ`);
+                            alert(
+                              `คัดลอกลิงก์ Proposal สำหรับ ${selectedLead.company} เรียบร้อยแล้ว!\nหลักสูตร: ${targetProg}\nสามารถส่งให้ลูกค้าเปิดดูหรือพิมพ์ได้ทันทีครับ`,
+                            );
                           }}
                           className="px-3 py-2 bg-white hover:bg-slate-50 border border-purple-300 text-purple-800 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
                         >
@@ -623,7 +823,10 @@ export default function AdminCRM() {
             {/* Quick Actions Footer */}
             <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
               <button
-                onClick={() => handleDeleteLead(selectedLead.id, selectedLead.name)}
+                disabled={admin?.role !== "SUPERADMIN"}
+                onClick={() =>
+                  handleDeleteLead(selectedLead.id, selectedLead.name)
+                }
                 className="p-2.5 text-rose-600 hover:bg-rose-50 rounded-xl text-xs flex items-center gap-1 transition-colors border border-rose-200"
                 title="ลบ Lead นี้ออกจากระบบ"
               >

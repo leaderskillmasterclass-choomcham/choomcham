@@ -1,27 +1,25 @@
 import React, { useState } from "react";
 import { AdminLayout } from "~/components/admin/AdminLayout";
-import { 
-  Sparkles, 
-  Copy, 
-  CheckCircle2, 
-  Download, 
-  Layers, 
-  FileText, 
-  Video, 
-  RefreshCw, 
-  BookOpen, 
+import {
+  Sparkles,
+  Copy,
+  CheckCircle2,
+  Download,
+  Layers,
+  FileText,
+  Video,
+  RefreshCw,
+  BookOpen,
   Send,
   Sliders,
   ChevronRight,
   Eye,
   Hash,
-  Lightbulb
+  Lightbulb,
 } from "lucide-react";
 
 export function meta() {
-  return [
-    { title: "AI Content Studio V2.0 | Choomcham House OS" },
-  ];
+  return [{ title: "Content Studio · ร่างจากเทมเพลต | Choomcham House OS" }];
 }
 
 const PRESET_TOPICS = [
@@ -29,39 +27,50 @@ const PRESET_TOPICS = [
     title: "คนยังมาทำงาน แต่ใจไม่ได้อยู่แล้ว (Zombie Worker)",
     category: "ORGANIZATION",
     hook: "สิ่งที่น่ากลัวที่สุดไม่ใช่คนลาออก... แต่คือคนยังอยู่แต่ใจไม่ได้อยู่แล้ว",
-    insight: "เราไม่ได้เหนื่อยเพราะงานเยอะเสมอไป แต่เราเหนื่อยเพราะไม่รู้ว่าสิ่งที่ทำอยู่มีความหมายอะไร"
+    insight:
+      "เราไม่ได้เหนื่อยเพราะงานเยอะเสมอไป แต่เราเหนื่อยเพราะไม่รู้ว่าสิ่งที่ทำอยู่มีความหมายอะไร",
   },
   {
     title: "ทำไมยิ่งประชุมเยอะ องค์กรยิ่งเงียบและไร้ไอเดียใหม่ (Silent Silos)",
     category: "TEAM",
     hook: "ห้องประชุมที่เงียบที่สุด มักไม่ใช่ห้องที่ไม่มีปัญหา แต่เป็นห้องที่ไม่มีความปลอดภัย",
-    insight: "เมื่อ Psychological Safety หายไป คนจะเลือกความอยู่รอดมากกว่าความจริงใจ"
+    insight:
+      "เมื่อ Psychological Safety หายไป คนจะเลือกความอยู่รอดมากกว่าความจริงใจ",
   },
   {
     title: "จากหมดไฟ สู่การเกิดใหม่จากข้างใน (Inner Rebirth)",
     category: "PEOPLE",
     hook: "การหมดไฟ ไม่ใช่เพราะคุณอ่อนแอ แต่เพราะคุณแบกสิ่งที่ไม่มีความหมายมานานเกินไป",
-    insight: "การฟื้นฟูไม่ใช่แค่การนอนพัก แต่คือการต่อท่อพลังชีวิตและความหมายใหม่ให้ตัวเอง"
+    insight:
+      "การฟื้นฟูไม่ใช่แค่การนอนพัก แต่คือการต่อท่อพลังชีวิตและความหมายใหม่ให้ตัวเอง",
   },
   {
-    title: "ผู้นำที่แท้จริง ไม่ได้มีคำตอบทุกเรื่อง แต่สร้างพื้นที่ให้ทุกคนกล้าหาคำตอบ",
+    title:
+      "ผู้นำที่แท้จริง ไม่ได้มีคำตอบทุกเรื่อง แต่สร้างพื้นที่ให้ทุกคนกล้าหาคำตอบ",
     category: "LEADER",
     hook: "ผู้นำที่เก่งที่สุด ไม่ใช่คนที่รู้ทุกอย่าง แต่คือคนที่ทำให้คนในทีมรู้สึกปลอดภัยที่จะลองผิดลองถูก",
-    insight: "Empathy และ Presence คืออาวุธที่ทรงพลังที่สุดของการนำการเปลี่ยนแปลง"
+    insight:
+      "Empathy และ Presence คืออาวุธที่ทรงพลังที่สุดของการนำการเปลี่ยนแปลง",
   },
   {
     title: "5 ขั้นตอนเปลี่ยน Zombie สู่ Living Organization (5-Stage Model)",
     category: "ORGANIZATION",
     hook: "เปลี่ยนองค์กรแห้งแล้ง ให้กลับมาชุ่มฉ่ำและมีชีวิตชีวาด้วย Reset → Recreate",
-    insight: "องค์กรที่มีชีวิต เริ่มต้นจากคนที่มีชีวิต"
-  }
+    insight: "องค์กรที่มีชีวิต เริ่มต้นจากคนที่มีชีวิต",
+  },
 ];
 
 export default function AdminContentStudio() {
-  const [contentType, setContentType] = useState<"carousel" | "article" | "reel">("carousel");
-  const [selectedAngle, setSelectedAngle] = useState<"PEOPLE" | "TEAM" | "LEADER" | "ORGANIZATION">("ORGANIZATION");
+  const [contentType, setContentType] = useState<
+    "carousel" | "article" | "reel"
+  >("carousel");
+  const [selectedAngle, setSelectedAngle] = useState<
+    "PEOPLE" | "TEAM" | "LEADER" | "ORGANIZATION"
+  >("ORGANIZATION");
   const [customTopic, setCustomTopic] = useState("");
-  const [targetAudience, setTargetAudience] = useState("ผู้บริหาร, HRD, และคนทำงานยุคใหม่");
+  const [targetAudience, setTargetAudience] = useState(
+    "ผู้บริหาร, HRD, และคนทำงานยุคใหม่",
+  );
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<string>("");
   const [copied, setCopied] = useState(false);
@@ -73,7 +82,8 @@ export default function AdminContentStudio() {
 
     setTimeout(() => {
       if (contentType === "carousel") {
-        setGeneratedContent(`
+        setGeneratedContent(
+          `
 # 🔮 CHOOMCHAM HOUSE — SOCIAL CAROUSEL (10 CARDS)
 **หัวข้อ:** ${activeTopic}
 **มุมมอง (Angle):** ${selectedAngle}
@@ -209,9 +219,11 @@ Swipe ดู 10 สไลด์นี้เพื่อสำรวจสัญ�
 👉 เช็กระดับสภาวะองค์กรของคุณด้วย Zombie Organization Check™ ได้ที่ลิงก์ใน Bio: choomcham.pages.dev
 
 #ChoomchamHouse #บ้านชุ่มฉ่ำ #LivingOrganization #ZombieOrganization #CultureTransformation #HRD #ผู้นำองค์กร #หมดไฟ
-        `.trim());
+        `.trim(),
+        );
       } else if (contentType === "article") {
-        setGeneratedContent(`
+        setGeneratedContent(
+          `
 # 📚 THOUGHT LEADERSHIP ARTICLE
 ## ${activeTopic}
 *โดย บ้านชุ่มฉ่ำ Choomcham House — Helping People & Organizations Reborn From Within*
@@ -246,9 +258,11 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
 
 ### บทสรุป
 "องค์กรที่มีชีวิต เริ่มต้นจากคนที่มีชีวิต" เมื่อเราให้ความสำคัญกับการดูแลคนจากข้างใน องค์กรจะไม่เพียงแต่เติบโตอย่างยั่งยืน แต่จะกลายเป็นพื้นที่แห่งความสุขและความคิดสร้างสรรค์ที่ทุกคนอยากตื่นขึ้นมาสร้างสิ่งใหม่ในทุก ๆ วัน
-        `.trim());
+        `.trim(),
+        );
       } else {
-        setGeneratedContent(`
+        setGeneratedContent(
+          `
 # 🎬 60-SECOND REEL / SHORT VIDEO SCRIPT
 **หัวข้อ:** ${activeTopic}
 **รูปแบบ:** Short Video (TikTok, IG Reel, YouTube Shorts)
@@ -276,7 +290,8 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
 ### [00:45 - 01:00] ACTION & CTA (ทางออก & ปิดท้าย)
 * **ภาพ (Visual):** ตัวอย่างผลประเมิน Zombie Organization Check™ บนมือถือ
 * **เสียงพูด (Voiceover):** "ลองตรวจสภาวะองค์กรของคุณฟรี 10 ข้อที่บ้านชุ่มฉ่ำ Choomcham House แล้วมาช่วยคนและองค์กรให้เกิดใหม่จากข้างในไปด้วยกันครับ ลิงก์อยู่ที่ Bio นะครับ!"
-        `.trim());
+        `.trim(),
+        );
       }
       setIsGenerating(false);
     }, 400);
@@ -292,7 +307,9 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
 
   const handleDownload = () => {
     if (!generatedContent) return;
-    const blob = new Blob([generatedContent], { type: "text/markdown;charset=utf-8" });
+    const blob = new Blob([generatedContent], {
+      type: "text/markdown;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -304,11 +321,14 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
 
   return (
     <AdminLayout
-      title="AI Content Studio V2.0"
+      title="Content Studio · ร่างจากเทมเพลต"
       subtitle="ระบบสร้างสรรค์บทความ คอนเทนต์โซเชียล และสคริปต์วิดีโอตามหลัก DMF Framework ของบ้านชุ่มฉ่ำ"
     >
+      <p className="mb-6 p-4 bg-amber-50 rounded-xl text-amber-900">
+        เครื่องมือสร้างร่างจากเทมเพลต ไม่ได้เชื่อม AI ภายนอก
+        กรุณาตรวจเนื้อหาก่อนนำไปเผยแพร่
+      </p>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
         {/* Left Controller: Settings & Topics */}
         <div className="lg:col-span-5 space-y-6">
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
@@ -361,19 +381,21 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
                 2. มิติมุมมอง (Transformation Angle)
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {(["PEOPLE", "TEAM", "LEADER", "ORGANIZATION"] as const).map((ang) => (
-                  <button
-                    key={ang}
-                    onClick={() => setSelectedAngle(ang)}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all ${
-                      selectedAngle === ang
-                        ? "bg-pink-600 text-white shadow-sm"
-                        : "bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100"
-                    }`}
-                  >
-                    {ang}
-                  </button>
-                ))}
+                {(["PEOPLE", "TEAM", "LEADER", "ORGANIZATION"] as const).map(
+                  (ang) => (
+                    <button
+                      key={ang}
+                      onClick={() => setSelectedAngle(ang)}
+                      className={`py-2 px-3 rounded-xl text-xs font-bold transition-all ${
+                        selectedAngle === ang
+                          ? "bg-pink-600 text-white shadow-sm"
+                          : "bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
+                      {ang}
+                    </button>
+                  ),
+                )}
               </div>
             </div>
 
@@ -396,8 +418,14 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
               disabled={isGenerating}
               className="w-full py-3.5 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-purple-900/30 flex items-center justify-center gap-2 transition-all hover:scale-101"
             >
-              <Sparkles className={`w-4 h-4 ${isGenerating ? "animate-spin" : ""}`} />
-              <span>{isGenerating ? "กำลังรังสรรค์คอนเทนต์ V2.0..." : "สร้างคอนเทนต์ด้วย AI Studio"}</span>
+              <Sparkles
+                className={`w-4 h-4 ${isGenerating ? "animate-spin" : ""}`}
+              />
+              <span>
+                {isGenerating
+                  ? "กำลังรังสรรค์คอนเทนต์ V2.0..."
+                  : "สร้างร่างจากเทมเพลต"}
+              </span>
             </button>
           </div>
 
@@ -426,7 +454,9 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
                   <h5 className="font-bold text-xs text-slate-900 mt-1.5 group-hover:text-purple-700 transition-colors">
                     {pt.title}
                   </h5>
-                  <p className="text-[11px] text-slate-500 mt-1 line-clamp-1 italic">"{pt.hook}"</p>
+                  <p className="text-[11px] text-slate-500 mt-1 line-clamp-1 italic">
+                    "{pt.hook}"
+                  </p>
                 </div>
               ))}
             </div>
@@ -443,7 +473,11 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
                     V2.0 Output Preview & Editor
                   </span>
                   <h3 className="text-base font-bold text-slate-900">
-                    {contentType === "carousel" ? "10-Card Social Carousel (DMF Framework)" : contentType === "article" ? "Long-Form Article" : "60-Second Video Script"}
+                    {contentType === "carousel"
+                      ? "10-Card Social Carousel (DMF Framework)"
+                      : contentType === "article"
+                        ? "Long-Form Article"
+                        : "60-Second Video Script"}
                   </h3>
                 </div>
 
@@ -453,7 +487,11 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
                       onClick={handleCopy}
                       className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
                     >
-                      {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copied ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
                       <span>{copied ? "คัดลอกแล้ว!" : "คัดลอก"}</span>
                     </button>
                     <button
@@ -479,9 +517,13 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
                   <div className="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mb-3">
                     <Sparkles className="w-7 h-7" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-800 mb-1">ยังไม่มีเนื้อหาที่สร้าง</h4>
+                  <h4 className="text-sm font-bold text-slate-800 mb-1">
+                    ยังไม่มีเนื้อหาที่สร้าง
+                  </h4>
                   <p className="text-xs text-slate-500 max-w-sm">
-                    เลือกรูปแบบคอนเทนต์ทางด้านซ้าย หรือคลิกเลือกหัวข้อยอดนิยมเพื่อสร้าง Carousel 10 การ์ด, บทความ, หรือสคริปต์วิดีโอได้ทันที
+                    เลือกรูปแบบคอนเทนต์ทางด้านซ้าย
+                    หรือคลิกเลือกหัวข้อยอดนิยมเพื่อสร้าง Carousel 10 การ์ด,
+                    บทความ, หรือสคริปต์วิดีโอได้ทันที
                   </p>
                   <button
                     onClick={() => handleGenerate(PRESET_TOPICS[0].title)}
@@ -495,13 +537,15 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
 
             {generatedContent && (
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-                <span>🌟 มาตรฐานเนื้อหา: DMF (รู้ ➔ เห็น ➔ รู้สึก ➔ สัมผัส ➔ สอดคล้อง)</span>
+                <span>
+                  🌟 มาตรฐานเนื้อหา: DMF (รู้ ➔ เห็น ➔ รู้สึก ➔ สัมผัส ➔
+                  สอดคล้อง)
+                </span>
                 <span>ฟอนต์แบรนด์: Anuphan & Poppins</span>
               </div>
             )}
           </div>
         </div>
-
       </div>
     </AdminLayout>
   );

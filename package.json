@@ -9,7 +9,10 @@
     "typecheck": "react-router typegen && tsc",
     "test:programs": "node scripts/test-program-proposals.mjs",
     "test:courses": "node scripts/test-course-designs.mjs",
-    "deploy": "react-router build && npx wrangler pages deploy ./build/client --project-name=choomcham --branch=main --commit-dirty=true"
+    "deploy": "react-router build && npx wrangler pages deploy ./build/client --project-name=choomcham --branch=main --commit-dirty=true",
+    "test:admin": "node scripts/test-admin.mjs",
+    "test:db": "node scripts/test-admin-db.mjs",
+    "test:ui": "node scripts/test-admin-ui.mjs"
   },
   "dependencies": {
     "@fontsource-variable/anuphan": "^5.3.0",
@@ -27,11 +30,13 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@react-router/dev": "^8",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^22",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "playwright": "^1.64.0",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
     "vite": "^8.0.3",
