@@ -488,39 +488,105 @@ const CASE_STUDIES = [
 const WORKSHOP_GALLERY_IMAGES = [
   {
     id: "g-1",
-    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REset/reset1.JPG",
-    title: "Self-Reflection & Awareness — ค้นหาคุณค่าและตัวจริงในตัวเอง",
-    category: "Level 1: Reborn"
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/reimagine/REimagine1.jpg",
+    title: "Facilitative Leadership & Team Ideation — จุดประกายความคิดสร้างสรรค์",
+    category: "Reimagine"
   },
   {
     id: "g-2",
-    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REconnect/Reconnect1.jpg",
-    title: "Empathic Listening Circle — พื้นที่รับฟังและสื่อสารอย่างเข้าใจ",
-    category: "Level 2: Communication"
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/reimagine/REimagine2.jpg",
+    title: "Empathic Collaboration & Deep Dialogue — สื่อสารจากใจและเปิดรับความต่าง",
+    category: "Reimagine"
   },
   {
     id: "g-3",
-    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REcharge/Recharge1.JPG",
-    title: "Team Synergy & Trust Building — คนเก่งเก่งไปด้วยกัน",
-    category: "Level 3: Team"
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/reimagine/REimagine3.jpg",
+    title: "Experiential Learning & Team Synergy — การเรียนรู้ผ่านประสบการณ์ตรง",
+    category: "Reimagine"
   },
   {
     id: "g-4",
-    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REimagine/Reimagine1.jpg",
-    title: "Facilitative Leadership — พัฒนาหัวหน้านำคนและปลดล็อกทีม",
-    category: "Level 4: Leader"
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/reimagine/REimagine4.jpg",
+    title: "Interactive Workshop & Alignment — สร้างเป้าหมายและพลังขับเคลื่อนร่วมกัน",
+    category: "Reimagine"
   },
   {
     id: "g-5",
-    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REcreate/Recreate1.jpg",
-    title: "Culture in Action — เปลี่ยน Core Values สู่การลงมือทำจริง",
-    category: "Level 5: Culture"
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/reimagine/REimagine5.jpg",
+    title: "Leadership Mindset & Growth — ปลดล็อกศักยภาพตัวจริงในองค์กร",
+    category: "Reimagine"
   },
   {
     id: "g-6",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/reimagine/REimagine6.jpg",
+    title: "Culture in Action — เปลี่ยน Core Values ให้กลายเป็นวิถีการทำงานจริง",
+    category: "Reimagine"
+  },
+  {
+    id: "g-7",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/reimagine/REimagine7.jpg",
+    title: "Team Connection & Trust Building — ทลายกำแพงและสร้างความไว้ใจในทีม",
+    category: "Reimagine"
+  },
+  {
+    id: "g-8",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/reimagine/REimagine8.jpg",
+    title: "Creative Problem Solving & Engagement — ร่วมกันระดมสมองเพื่อผลลัพธ์ใหม่",
+    category: "Reimagine"
+  },
+  {
+    id: "g-9",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/reimagine/REimagine9.jpg",
+    title: "Inspiring Moments & Transformation — บรรยากาศแห่งความสุขและการเติบโต",
+    category: "Reimagine"
+  },
+  {
+    id: "g-10",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/reimagine/REimagine10.jpg",
+    title: "Authentic Expression & Active Participation — ทุกคนมีส่วนร่วมและมีตัวตน",
+    category: "Reimagine"
+  },
+  {
+    id: "g-11",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/reimagine/REimagine11.jpg",
+    title: "Collective Reflection — ถอดบทเรียนและประมวลผลการเรียนรู้",
+    category: "Reimagine"
+  },
+  {
+    id: "g-12",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/reimagine/REimagine.jpg",
+    title: "Reimagine The Future — ออกแบบวิสัยทัศน์และการทำงานยุคใหม่",
+    category: "Reimagine"
+  },
+  {
+    id: "g-13",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REcreate/Recreate2.jpg",
+    title: "Action Plan & Commitment — พันธสัญญาการเปลี่ยนแปลงสู่การปฏิบัติจริง",
+    category: "Recreate"
+  },
+  {
+    id: "g-14",
     url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REcreate/Recreate3.jpg",
-    title: "Experiential Learning — การเรียนรู้จากประสบการณ์ตรงเพื่อการเปลี่ยนแปลง",
-    category: "Organization"
+    title: "Living Organization Building — ผสานพลังสู่องค์กรที่มีชีวิต",
+    category: "Recreate"
+  },
+  {
+    id: "g-15",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REcreate/Recreate4.jpg",
+    title: "Hands-on Workshop Dynamic — กิจกรรมพัฒนาทักษะการทำงานเป็นทีม",
+    category: "Recreate"
+  },
+  {
+    id: "g-16",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REcreate/Recreate5.jpg",
+    title: "Team Celebration & Breakthrough — เฉลิมฉลองความสำเร็จและก้าวต่อไป",
+    category: "Recreate"
+  },
+  {
+    id: "g-17",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REcreate/Recreate6.jpg",
+    title: "Enduring Culture Transformation — สร้างวัฒนธรรมที่ตัวจริงมีที่ยืนอย่างยั่งยืน",
+    category: "Recreate"
   }
 ];
 
