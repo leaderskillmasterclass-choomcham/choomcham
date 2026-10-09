@@ -1,4 +1,10 @@
-import { authorize, emails, json } from "../lib/admin-auth";
+import {
+  authorize,
+  emails,
+  getAllowedEmails,
+  getSuperAdminEmails,
+  json,
+} from "../lib/admin-auth";
 // Access is configured server-side. This endpoint never creates users with default passwords.
 export async function onRequestGet({
   request,
@@ -11,8 +17,8 @@ export async function onRequestGet({
   if (auth.response) return auth.response;
   if (auth.role !== "SUPERADMIN")
     return json({ error: "ต้องใช้สิทธิ์ Super Admin" }, 403);
-  const allowed = emails(env.ADMIN_EMAILS || env.COURSE_ADMIN_EMAILS),
-    supers = emails(env.SUPER_ADMIN_EMAILS),
+  const allowed = getAllowedEmails(env),
+    supers = getSuperAdminEmails(env),
     operators = emails(env.OPERATOR_EMAILS);
   return json({
     success: true,
