@@ -3,6 +3,7 @@ import type { Route } from "./+types/home";
 import { useState, useEffect } from "react";
 import { SiteHeader } from "~/components/layout/SiteHeader";
 import { HomeHero } from "~/components/sections/HomeHero";
+import { CustomerLogos } from "~/components/sections/CustomerLogos";
 import { getResultLevelInfo } from "~/lib/diagnostic";
 import { 
   Users, Award, Sparkles, Send, 
@@ -710,6 +711,11 @@ export default function Home() {
             SECTION 1: HERO / องค์กรตัวจริง™
         ======================================================== */}
         <HomeHero />
+
+        {/* ========================================================
+            SECTION 2: TRUSTED CLIENTS & ORGANIZATIONS
+        ======================================================== */}
+        <CustomerLogos />
 
         {/* ========================================================
             SECTION 9: INTERACTIVE EVALUATION (ZOMBIE CHECK™)
