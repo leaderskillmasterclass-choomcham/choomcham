@@ -116,11 +116,9 @@
 }
 
 @theme {
-  --font-sans: "Cloud Soft", "Anuphan Variable", "Poppins", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "CS PraJad", "Cloud Soft", "Poppins", sans-serif;
-  --font-display: "CS PraJad", "Cloud Soft", "Poppins", sans-serif;
+  --font-sans: "Anuphan Variable", "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Poppins", "Anuphan Variable", sans-serif;
   --font-prajad: "CS PraJad", "Cloud Soft", sans-serif;
-  --font-cloud: "Cloud Soft", "Anuphan Variable", sans-serif;
   --font-montserrat: "Montserrat", sans-serif;
   --font-serif: "Crimson Text", ui-serif, Georgia, serif;
 
@@ -177,22 +175,6 @@ body {
   scroll-behavior: smooth;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-}
-
-h1, h2, h3, h4, .font-heading, .font-prajad, .font-display {
-  font-family: var(--font-heading);
-}
-
-.font-cloud {
-  font-family: var(--font-cloud);
-}
-
-.font-montserrat {
-  font-family: var(--font-montserrat);
-}
-
-.font-serif {
-  font-family: var(--font-serif);
 }
 
 /* Custom Utilities for Glow Effects using Brand CI Colors */
