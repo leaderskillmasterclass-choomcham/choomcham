@@ -57,6 +57,7 @@ export function AdminLayout({ children, title, subtitle }: AdminLayoutProps) {
     { label: "Executive Overview", path: "/admin/dashboard", icon: LayoutDashboard },
     { label: "B2B CRM Pipeline", path: "/admin/crm", icon: Kanban },
     { label: "Proposal Engine", path: "/admin/proposals", icon: FileText },
+    { label: "ออกแบบหลักสูตรองค์กร", path: "/admin/courses", icon: Wand2 },
     { label: "AI Content Studio V2", path: "/admin/content-studio", icon: Sparkles },
     { label: "Gallery & R2 Media", path: "/admin/gallery", icon: ImageIcon },
     { label: "Projects Delivery", path: "/admin/projects", icon: FolderKanban },

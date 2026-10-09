@@ -12,6 +12,7 @@ export default [
   route("admin/dashboard", "routes/admin/dashboard.tsx"),
   route("admin/crm", "routes/admin/crm.tsx"),
   route("admin/proposals", "routes/admin/proposals.tsx"),
+  route("admin/courses", "routes/admin/courses.tsx"),
   route("admin/content-studio", "routes/admin/content-studio.tsx"),
   route("admin/gallery", "routes/admin/gallery.tsx"),
   route("admin/projects", "routes/admin/projects.tsx"),

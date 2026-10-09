@@ -10,3 +10,8 @@
 /.react-router/
 /build/
 dist/
+
+# Update bundles
+choomcham-admin-course-designer/
+choomcham-growth-programs-update/
+choomcham-professional-update/

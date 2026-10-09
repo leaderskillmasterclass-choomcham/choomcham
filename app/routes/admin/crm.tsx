@@ -535,6 +535,7 @@ export default function AdminCRM() {
                 )}
                 {selectedLead.dimensions_scores?.proposal_brief && <div className="text-xs space-y-2 pt-3 border-t border-slate-100">
                   <h4 className="font-bold text-purple-700">ข้อมูลออกแบบโปรแกรม</h4>
+                  <a className="block rounded-lg bg-purple-700 text-white p-3 font-semibold" href={`/admin/courses?leadId=${encodeURIComponent(selectedLead.id)}`}>ออกแบบหลักสูตรจากโจทย์องค์กรนี้ →</a>
                   {[
                     ["กลุ่มผู้เรียน", selectedLead.dimensions_scores.proposal_brief.audience],
                     ["จำนวนผู้เรียน", `${selectedLead.dimensions_scores.proposal_brief.participants} คน`],

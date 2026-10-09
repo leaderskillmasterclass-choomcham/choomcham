@@ -10,6 +10,7 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 import "./styles/programs.css";
+import "./styles/course-admin.css";
 import { JsonLd, CHOOMCHAM_GLOBAL_SCHEMA } from "./components/JsonLd";
 
 export const links: Route.LinksFunction = () => [

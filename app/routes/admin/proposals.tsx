@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { AdminLayout } from "~/components/admin/AdminLayout";
 import { 
   FileText, 
@@ -151,6 +151,7 @@ export default function AdminProposals() {
       subtitle="ระบบจัดทำและออกใบเสนอราคา พร้อม 5-Stage Transformation Blueprint ส่งให้องค์กรลูกค้าได้ทันที"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-12 p-5 bg-purple-50 border border-purple-200 rounded-2xl"><strong className="block mb-2">ต้องการออกแบบเนื้อหาให้ตรงโจทย์องค์กร?</strong><p className="text-sm mb-3">เขียนวัตถุประสงค์ กิจกรรม เวลา และแผนวัดผลจากคำขอ Proposal ก่อนยืนยันขอบเขตและราคา</p><Link to="/admin/courses" className="text-purple-700 font-semibold underline">เปิดเครื่องมือออกแบบหลักสูตร →</Link></div>
         
         {/* Left Form: Proposal Builder */}
         <div className="lg:col-span-6 space-y-6">
