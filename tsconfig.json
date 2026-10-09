@@ -22,5 +22,10 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "build",
+    "choomcham-professional-update"
+  ]
 }
