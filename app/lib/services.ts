@@ -2,6 +2,9 @@ import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { calculateDimensionScores, getResultLevelInfo, DIAGNOSTIC_DIMENSIONS } from "./diagnostic";
 
+const DEFAULT_SUPABASE_URL = "https://upxypufbqvtmokxeutrt.supabase.co";
+const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVweHlwdWZicXZ0bW9reGV1dHJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2MjM5MDMsImV4cCI6MjEwMzE5OTkwM30.A3pGgeeySw6bPfdYlHMCIynQHbFV7ZEzSe31yB7z0XY";
+
 // Helper to get env variables dynamically on Cloudflare Pages, browser, or Node.js local dev
 export function getEnvVar(context: any, key: string): string | undefined {
   if (context?.cloudflare?.env?.[key]) {
@@ -9,6 +12,13 @@ export function getEnvVar(context: any, key: string): string | undefined {
   }
   if (typeof process !== "undefined" && process?.env?.[key]) {
     return process.env[key];
+  }
+  // Vite static replacement checks
+  if (key === "SUPABASE_URL" || key === "VITE_SUPABASE_URL") {
+    return (import.meta as any)?.env?.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+  }
+  if (key === "SUPABASE_ANON_KEY" || key === "VITE_SUPABASE_ANON_KEY") {
+    return (import.meta as any)?.env?.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
   }
   if (typeof import.meta !== "undefined" && (import.meta as any)?.env?.[key]) {
     return (import.meta as any).env[key];
@@ -21,8 +31,8 @@ export function getEnvVar(context: any, key: string): string | undefined {
 
 // Initialize Supabase Client
 export function getSupabaseClient(context?: any) {
-  const supabaseUrl = getEnvVar(context, "SUPABASE_URL") || getEnvVar(context, "VITE_SUPABASE_URL");
-  const supabaseKey = getEnvVar(context, "SUPABASE_ANON_KEY") || getEnvVar(context, "VITE_SUPABASE_ANON_KEY");
+  const supabaseUrl = getEnvVar(context, "SUPABASE_URL") || (import.meta as any)?.env?.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+  const supabaseKey = getEnvVar(context, "SUPABASE_ANON_KEY") || (import.meta as any)?.env?.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
     return null;
@@ -40,9 +50,19 @@ export async function saveLeadToSupabase(context: any, leadData: {
   score: number;
   result_level: string;
   answers: number[];
+  dimensions_scores?: any;
 }) {
   const supabase = getSupabaseClient(context);
-  const dimensionScores = calculateDimensionScores(leadData.answers);
+  const dimensionScores = leadData.dimensions_scores || calculateDimensionScores(leadData.answers || []);
+
+  // Ensure result_level is valid for Supabase enum (ALIVE, TIRED, FADED, ZOMBIE)
+  let safeResultLevel = leadData.result_level;
+  if (!["ALIVE", "TIRED", "FADED", "ZOMBIE"].includes(safeResultLevel)) {
+    if (leadData.score >= 34) safeResultLevel = "ALIVE";
+    else if (leadData.score >= 26) safeResultLevel = "TIRED";
+    else if (leadData.score >= 18) safeResultLevel = "FADED";
+    else safeResultLevel = "ZOMBIE";
+  }
 
   console.log("[Supabase Service] Saving lead for:", leadData.name);
 
@@ -53,6 +73,7 @@ export async function saveLeadToSupabase(context: any, leadData: {
       data: { 
         id: "mock-uuid-12345", 
         ...leadData, 
+        result_level: safeResultLevel,
         dimensions_scores: dimensionScores,
         status: "NEW",
         created_at: new Date().toISOString() 
@@ -71,9 +92,9 @@ export async function saveLeadToSupabase(context: any, leadData: {
           position: leadData.position,
           email_or_line: leadData.email_or_line,
           team_size: leadData.team_size || null,
-          score: leadData.score,
-          result_level: leadData.result_level,
-          answers: leadData.answers,
+          score: leadData.score || 0,
+          result_level: safeResultLevel,
+          answers: leadData.answers || [],
           dimensions_scores: dimensionScores,
           status: "NEW",
         }
@@ -92,8 +113,25 @@ export async function saveLeadToSupabase(context: any, leadData: {
   }
 }
 
-// Fetch all leads for Admin CRM
+// Fetch all leads for Admin CRM (tries /api/leads Edge API first, then falls back to direct Supabase)
 export async function fetchLeadsFromSupabase(context?: any) {
+  // 1. Try serverless edge API /api/leads (has service role key to bypass RLS)
+  try {
+    const res = await fetch("/api/leads", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" }
+    });
+    if (res.ok) {
+      const json: any = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        return { success: true, data: json.data };
+      }
+    }
+  } catch (edgeErr) {
+    console.warn("[Services] /api/leads fetch error, trying direct Supabase client:", edgeErr);
+  }
+
+  // 2. Direct Supabase Client fallback
   const supabase = getSupabaseClient(context);
   if (!supabase) {
     return { success: false, data: [] };
@@ -115,6 +153,24 @@ export async function fetchLeadsFromSupabase(context?: any) {
 
 // Update Lead Status in CRM
 export async function updateLeadStatusInSupabase(context: any, leadId: string, status: string, notes?: string) {
+  // 1. Try serverless edge API /api/leads
+  try {
+    const res = await fetch("/api/leads", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: leadId, status, notes })
+    });
+    if (res.ok) {
+      const json: any = await res.json();
+      if (json.success) {
+        return { success: true, data: json.data };
+      }
+    }
+  } catch (edgeErr) {
+    console.warn("[Services] /api/leads PUT failed, falling back to direct Supabase:", edgeErr);
+  }
+
+  // 2. Direct Supabase fallback
   const supabase = getSupabaseClient(context);
   if (!supabase) {
     return { success: true, simulated: true };
@@ -136,6 +192,65 @@ export async function updateLeadStatusInSupabase(context: any, leadId: string, s
     console.error("[Supabase Service] Error updating lead:", err);
     return { success: false, error: err.message || err };
   }
+}
+
+// Delete a Lead in Supabase
+export async function deleteLeadFromSupabase(context: any, leadId: string) {
+  // 1. Try serverless edge API /api/leads
+  try {
+    const res = await fetch(`/api/leads?id=${encodeURIComponent(leadId)}`, {
+      method: "DELETE"
+    });
+    if (res.ok) {
+      const json: any = await res.json();
+      if (json.success) {
+        return { success: true };
+      }
+    }
+  } catch (edgeErr) {
+    console.warn("[Services] /api/leads DELETE failed, falling back to direct Supabase:", edgeErr);
+  }
+
+  // 2. Direct Supabase fallback
+  const supabase = getSupabaseClient(context);
+  if (!supabase) {
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const { error } = await supabase
+      .from("leads")
+      .delete()
+      .eq("id", leadId);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (err: any) {
+    console.error("[Supabase Service] Error deleting lead:", err);
+    return { success: false, error: err.message || err };
+  }
+}
+
+// Real-time Subscription for Leads Table
+export function subscribeToLeadsRealtime(onPayload: (payload: any) => void) {
+  const supabase = getSupabaseClient();
+  if (!supabase) return () => {};
+
+  const channel = supabase
+    .channel("realtime:public:leads")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "leads" },
+      (payload) => {
+        console.log("[Supabase Realtime] Leads table change detected:", payload);
+        onPayload(payload);
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
 }
 
 // 2. Resend Email Services (Notification to Admin + Rebirth Report to Client)

@@ -1,8 +1,121 @@
 @import "tailwindcss";
 
+/* ========================================================
+   CUSTOM BRAND FONTS (CHOOMCHAM CI)
+   ======================================================== */
+
+@font-face {
+  font-family: "Cloud Soft";
+  src: url("/fonts/cloud-soft/CloudSoft-Light.ttf") format("truetype"),
+       url("/fonts/cloud-soft/CloudSoft-Light.otf") format("opentype");
+  font-weight: 300 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cloud Soft";
+  src: url("/fonts/cloud-soft/CloudSoft-Bold.ttf") format("truetype"),
+       url("/fonts/cloud-soft/CloudSoft-Bold.otf") format("opentype");
+  font-weight: 600 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "CS PraJad";
+  src: url("/fonts/cs-prajad/CSPraJad-v2.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "CS PraJad";
+  src: url("/fonts/cs-prajad/CSPraJad-bold-v2.otf") format("opentype");
+  font-weight: 700 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "CS PraJad";
+  src: url("/fonts/cs-prajad/CSPraJad-Italic-v2.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "CS PraJad";
+  src: url("/fonts/cs-prajad/CSPraJad-boldItalic-v2.otf") format("opentype");
+  font-weight: 700 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("/fonts/Montserrat/Montserrat-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("/fonts/Montserrat/Montserrat-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("/fonts/Montserrat/Montserrat-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("/fonts/Montserrat/Montserrat-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("/fonts/Montserrat/Montserrat-ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Crimson Text";
+  src: url("/fonts/crimson-text/CrimsonText-Roman.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Crimson Text";
+  src: url("/fonts/crimson-text/CrimsonText-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
-  --font-sans: "Anuphan", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Poppins", sans-serif;
+  --font-sans: "Cloud Soft", "CS PraJad", "Montserrat", "Anuphan", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cloud Soft", "CS PraJad", "Montserrat", sans-serif;
+  --font-prajad: "CS PraJad", "Cloud Soft", sans-serif;
+  --font-montserrat: "Montserrat", sans-serif;
+  --font-serif: "Crimson Text", ui-serif, Georgia, serif;
 
   /* Brand CI Colors */
   --color-brand-purple: #4044A5;

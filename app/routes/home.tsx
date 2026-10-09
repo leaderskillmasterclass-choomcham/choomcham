@@ -2,24 +2,290 @@ import { useFetcher } from "react-router";
 import type { Route } from "./+types/home";
 import { useState, useEffect } from "react";
 import { 
-  Flame, Users, Award, ShieldAlert, Sparkles, Send, 
+  Users, Award, Sparkles, Send, 
   CheckCircle, ArrowRight, Zap, Target, BookOpen, AlertCircle,
   HelpCircle, MessageSquare, Check, Phone, ArrowUpRight, ChevronRight, ChevronLeft,
   RefreshCw, Smile, Heart, RefreshCcw, Compass, Lightbulb,
-  Menu, X, FileText, Layers, ShieldCheck
+  Menu, X, FileText, Layers, ShieldCheck, Image as ImageIcon, Maximize2,
+  TrendingUp, MessageCircle, Eye, Star, UserCheck, Shield, ChevronDown
 } from "lucide-react";
 import { saveLeadToSupabase, sendEmailNotification, sendLineNotification } from "~/lib/services";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "บ้านชุ่มฉ่ำ CHOOMCHAM HOUSE | ชุบชีวิตคนและองค์กร เกิดใหม่จากข้างใน" },
-    { name: "description", content: "ช่วยคนและองค์กรที่กำลังหมดไฟ เหี่ยวเฉา หรือทำงานแบบ Zombie กลับมามีพลัง มี Connection และมีชีวิตชีวาอีกครั้งด้วยหลักสูตรและประสบการณ์แบบ Custom" },
-    { name: "keywords", content: "บ้านชุ่มฉ่ำ, Choomcham House, พัฒนาองค์กร, จัดอบรม, HRD, Team Building, หมดไฟ, Burnout, Organizational Rebirth" },
-    { property: "og:title", content: "บ้านชุ่มฉ่ำ CHOOMCHAM HOUSE | Organizational Rebirth" },
-    { property: "og:description", content: "เปลี่ยน Zombie Organization ให้เป็น Living Organization กลับมามีพลังชีวิตอีกครั้ง" },
-    { property: "og:image", content: "/logo.jpg" },
+    { title: "องค์กรตัวจริง™ THE AUTHENTIC ORGANIZATION | Choomcham Branding" },
+    { name: "description", content: "หลักสูตรพัฒนาคน ทีม ผู้นำ และวัฒนธรรมองค์กร เพื่อพัฒนาคนจาก 'ข้างใน' ไปสู่การเปลี่ยนแปลงระดับ 'องค์กร' ภายใต้แนวคิด 'ตัวจริงต้องมีที่ยืน' โดย Choomcham Branding" },
+    { name: "keywords", content: "องค์กรตัวจริง, The Authentic Organization, ตัวจริงต้องมีที่ยืน, Choomcham Branding, พัฒนาองค์กร, จัดอบรมองค์กร, Teamwork, Leadership, Corporate Culture, In-house Training, ครูอีฟ, พัฒนาคน" },
+    { property: "og:title", content: "องค์กรตัวจริง™ THE AUTHENTIC ORGANIZATION | Choomcham Branding" },
+    { property: "og:description", content: "หลักสูตรพัฒนาคน ทีม ผู้นำ และวัฒนธรรมองค์กร ผ่าน 5 ระดับการเติบโต ภายใต้แนวคิด 'ตัวจริงต้องมีที่ยืน'" },
+    { property: "og:image", content: "/chumcham.png" },
   ];
 }
+
+// 5 Levels Data with exact refined copy
+const AUTHENTIC_LEVELS = [
+  {
+    levelNumber: "LEVEL 1",
+    code: "REBORN",
+    title: "ตัวจริงของตัวเอง",
+    hook: "ก่อนจะพัฒนางาน ต้องกลับมาเข้าใจ “คน” ที่กำลังทำงานนั้นก่อน",
+    summary: "ค้นหาจุดแข็ง คุณค่า ตัวตน Mindset และบทบาทของตัวเองในองค์กร",
+    quote: "เพื่อให้แต่ละคนตอบตัวเองได้ว่า “ฉันคือใคร ฉันมีคุณค่าอะไร และฉันมีที่ยืนตรงไหนในองค์กรนี้”",
+    benefit: "คนที่ค้นพบคุณค่าและตัวตนของตัวเอง จะสามารถนำศักยภาพออกมาใช้ได้อย่างมั่นใจและเต็มกำลัง",
+    icon: Compass,
+    color: "from-brand-purple to-indigo-600",
+    badge: "bg-purple-100 text-brand-purple border-purple-200"
+  },
+  {
+    levelNumber: "LEVEL 2",
+    code: "COMMUNICATION",
+    title: "ตัวจริงที่สื่อสารเป็น",
+    hook: "เก่งอย่างเดียวไม่พอ ถ้าสิ่งที่คิด ไม่สามารถส่งไปถึงคนอื่นได้",
+    summary: "พัฒนาการฟัง การพูด การ Feedback การเข้าใจความแตกต่างของคน และการสื่อสารเพื่อทำงานร่วมกัน",
+    quote: "เปลี่ยนจาก “ฉันเข้าใจของฉัน” เป็น “เรากำลังเข้าใจเรื่องเดียวกัน”",
+    benefit: "สลายกำแพงความเงียบ ลดความขัดแย้ง และสร้างการสื่อสารที่มีประสิทธิภาพตรงเป้าหมาย",
+    icon: MessageSquare,
+    color: "from-brand-pink to-rose-600",
+    badge: "bg-pink-100 text-brand-pink border-pink-200"
+  },
+  {
+    levelNumber: "LEVEL 3",
+    code: "TEAM",
+    title: "ตัวจริงที่สร้างทีมเป็น",
+    hook: "องค์กรไม่ได้โตจาก Hero เพียงคนเดียว แต่โตจากคนเก่ง ที่สามารถทำให้ “คนอื่นเก่งไปด้วยกัน”",
+    summary: "สร้าง Trust, Ownership, ความเข้าใจในบทบาท และเป้าหมายร่วมกัน",
+    quote: "เปลี่ยนจาก “ฉันทำงานของฉัน” เป็น “นี่คือเป้าหมายของเรา”",
+    benefit: "ทลาย Silo ข้ามแผนก เชื่อมพลังให้ทุกคนมุ่งสู่ Shared Goal ใหญ่ขององค์กรอย่างพร้อมเพรียง",
+    icon: Users,
+    color: "from-brand-yellow to-amber-600",
+    badge: "bg-amber-100 text-amber-800 border-amber-200"
+  },
+  {
+    levelNumber: "LEVEL 4",
+    code: "LEADER",
+    title: "ตัวจริงที่นำคนเป็น",
+    hook: "Leadership ไม่ได้เริ่มต้นในวันที่มีตำแหน่ง แต่เริ่มต้นในวันที่เราสามารถรับผิดชอบตัวเอง สร้างอิทธิพลเชิงบวก และทำให้คนรอบตัวเติบโตขึ้นได้",
+    summary: "สร้างผู้นำ ที่ไม่ได้เพียง “สั่งให้คนทำ” แต่สามารถ “ทำให้คนอยากเดินไปด้วยกัน”",
+    quote: "จากคนที่ “ทำงานเก่ง” สู่ผู้นำที่ “สร้างแรงบันดาลใจและดึงศักยภาพทีมออกมาได้จริง”",
+    benefit: "พัฒนาหัวหน้าทีมและ Future Leader ให้เชี่ยวชาญทั้งมิติ 'งาน' และ 'การนำคน'",
+    icon: Target,
+    color: "from-brand-green to-teal-700",
+    badge: "bg-emerald-100 text-brand-green border-emerald-200"
+  },
+  {
+    levelNumber: "LEVEL 5",
+    code: "CULTURE",
+    title: "องค์กรที่ตัวจริงมีที่ยืน",
+    hook: "เมื่อคนรู้จักตัวเอง สื่อสารเป็น ทำงานเป็นทีม และมีผู้นำที่แข็งแรง สิ่งที่เกิดขึ้นต่อไปคือ “วัฒนธรรมองค์กร”",
+    summary: "วัฒนธรรมที่ไม่ได้อยู่แค่บนกำแพง หรืออยู่ใน Company Values แต่อยู่ในวิธีคิด วิธีพูด วิธีตัดสินใจ และวิธีทำงานของคนทุกวัน",
+    quote: "เปลี่ยน Core Values จาก “คำประกาศบนกำแพง” เป็น “สิ่งที่คนจริง ๆ ทำในทุกวัน”",
+    benefit: "สร้างวัฒนธรรมองค์กรที่แข็งแรงและยั่งยืน ที่คนตัวจริงทุกคนรู้สึกมีที่ยืนและพร้อมเติบโตไปด้วยกัน",
+    icon: ShieldCheck,
+    color: "from-brand-blue to-cyan-700",
+    badge: "bg-blue-100 text-brand-blue border-blue-200"
+  }
+];
+
+// FAQ Items Data
+const FAQ_ITEMS = [
+  {
+    id: 1,
+    category: "หลักสูตร & เหมาะกับใคร",
+    question: "หลักสูตรนี้เหมาะกับองค์กรแบบไหน?",
+    answer: `เหมาะกับองค์กรที่อยากพัฒนา “คน” ให้ทำงานได้ดีขึ้น และโตไปพร้อมกับองค์กรค่ะ
+
+ไม่ว่าจะกำลังเจอเรื่อง:
+• คนเก่ง แต่ทำงานร่วมกันยาก
+• การสื่อสารในทีมไม่ชัด
+• พนักงานขาด Ownership
+• หัวหน้าเก่งงาน แต่ยังนำคนไม่เป็น
+• แต่ละทีมต่างคนต่างทำ
+• มี Core Values แต่ยังไม่เกิดขึ้นในการทำงานจริง
+
+เล่าโจทย์ให้เราฟังก่อนได้เลย ทีมชุ่มฉ่ำจะช่วยดูว่าควรเริ่มพัฒนาจากตรงไหนค่ะ`
+  },
+  {
+    id: 2,
+    category: "เนื้อหาหลักสูตร",
+    question: "หลักสูตรมีเรื่องอะไรบ้าง?",
+    answer: `เราแบ่งการพัฒนาออกเป็น 5 ด้านค่ะ:
+
+01 REBORN — รู้จักตัวเอง จุดแข็ง คุณค่า และบทบาทของตัวเองในองค์กร
+02 COMMUNICATION — ฟังเป็น พูดเป็น Feedback เป็น และสื่อสารกับคนที่แตกต่างได้
+03 TEAM — สร้าง Trust, Ownership และเป้าหมายร่วมกันของทีม
+04 LEADER — พัฒนาจาก “คนเก่งงาน” สู่ “คนที่นำและพัฒนาคนอื่นได้”
+05 CULTURE — ทำให้ Vision และ Core Values ไม่ใช่แค่คำบนกำแพง แต่เกิดขึ้นในการทำงานจริง`
+  },
+  {
+    id: 3,
+    category: "เนื้อหาหลักสูตร",
+    question: "ต้องเรียนครบทั้ง 5 เรื่องไหม?",
+    answer: `ไม่จำเป็นเลยค่ะ :)
+
+เลือกเฉพาะเรื่องที่องค์กรต้องการได้ เช่น:
+• ทีมมีปัญหาเรื่องการสื่อสาร → เน้น COMMUNICATION
+• กำลังสร้างหัวหน้ารุ่นใหม่ → เน้น LEADER
+• อยากให้แต่ละแผนกทำงานร่วมกันมากขึ้น → เน้น TEAM
+
+หรือถ้าอยากพัฒนาต่อเนื่อง เราสามารถออกแบบเป็น Learning Journey ตั้งแต่ “คน → ทีม → ผู้นำ → Culture” ได้ค่ะ`
+  },
+  {
+    id: 4,
+    category: "การปรับหลักสูตร",
+    question: "สามารถออกแบบหลักสูตรเฉพาะองค์กรได้ไหม?",
+    answer: `ได้ค่ะ และเราแนะนำแบบนี้เลย!
+
+เพราะแต่ละองค์กรมี “คน” และ “ปัญหา” ไม่เหมือนกัน ก่อนออกแบบหลักสูตร ทีมชุ่มฉ่ำจะคุยกับ HR / ผู้บริหารก่อนว่า:
+• ตอนนี้เกิดอะไรขึ้น?
+• อยากแก้ปัญหาอะไร?
+• และหลังอบรมอยากเห็นอะไรเปลี่ยนไป?
+
+จากนั้นเราค่อยออกแบบเนื้อหา Workshop และรูปแบบการเรียนให้เหมาะกับองค์กรค่ะ`
+  },
+  {
+    id: 5,
+    category: "วิทยากร",
+    question: "ใครเป็นคนสอน?",
+    answer: `หลักสูตรออกแบบโดย Choomcham Branding ภายใต้แนวคิด “ตัวจริงต้องมีที่ยืน”
+
+โดยมี “ครูอีฟ — Eve Pattars” Founder of Choomcham Branding เป็นวิทยากรหลักในด้าน:
+• Branding & Brand DNA
+• Storytelling & Communication
+• Personal Branding
+
+และในหัวข้อเฉพาะทาง จะมีวิทยากรจากทีมชุ่มฉ่ำที่เชี่ยวชาญในด้านนั้น ๆ มาร่วมดูแล เราไม่ได้เลือกวิทยากรแค่ว่า “ใครพูดเก่ง” แต่ดูว่า “ใครเหมาะที่สุดกับโจทย์ขององค์กรนี้?”`
+  },
+  {
+    id: 6,
+    category: "รูปแบบการสอน",
+    question: "เป็นการนั่งฟังบรรยายทั้งวันไหม?",
+    answer: `ไม่ใช่ค่ะ :)
+
+เราไม่อยากให้ทุกคนนั่งฟังทั้งวัน แล้ววันรุ่งขึ้นกลับไปทำงานเหมือนเดิม แต่ละคลาสจึงมีทั้ง:
+• เนื้อหาที่เข้าใจง่าย
+• Case Study
+• กิจกรรม & Workshop
+• การแลกเปลี่ยนในทีม
+• การนำโจทย์จริงขององค์กรมาใช้
+
+หลักคิดของเราคือ “เข้าใจ → ได้ลอง → กลับไปใช้ได้จริง”`
+  },
+  {
+    id: 7,
+    category: "ผู้เรียน",
+    question: "ถ้าพนักงานเงียบ ไม่ค่อยกล้าพูด เรียนได้ไหม?",
+    answer: `ได้เลยค่ะ
+
+เราไม่ได้คาดหวังว่าทุกคนต้องเป็นคนพูดเก่ง หรือกล้าแสดงออกตั้งแต่แรก กิจกรรมจะค่อย ๆ เปิดพื้นที่ให้แต่ละคนมีส่วนร่วมในแบบของตัวเอง
+
+เพราะคำว่า “ตัวจริงต้องมีที่ยืน” ไม่ได้หมายถึงเฉพาะคนที่เสียงดังที่สุดในห้องค่ะ :)`
+  },
+  {
+    id: 8,
+    category: "ผู้เรียน",
+    question: "อบรมได้ตั้งแต่พนักงานจนถึงผู้บริหารไหม?",
+    answer: `ได้ค่ะ แต่เนื้อหาจะไม่เหมือนกันทุกระดับ:
+
+• พนักงาน → เน้นตัวเอง การสื่อสาร และการทำงานเป็นทีม
+• หัวหน้า / Manager → เพิ่ม Feedback, Leadership และการนำคน
+• ผู้บริหาร → เน้น Leadership, Culture และการส่งต่อ Vision ขององค์กร
+
+เราจะปรับภาษา กิจกรรม และ Case ให้เหมาะกับผู้เรียนค่ะ`
+  },
+  {
+    id: 9,
+    category: "Team Building",
+    question: "ถ้าอยากทำ Team Building อย่างเดียวได้ไหม?",
+    answer: `ได้ค่ะ และ Team Building ของเราไม่จำเป็นต้องจบแค่ “เล่นเกมแล้วสนุก” :)
+
+เราสามารถออกแบบให้ทีมรู้จักกันมากขึ้น เข้าใจความแตกต่าง สร้าง Trust เห็นคุณค่าของกันและกัน และกลับมาเห็นว่า “เรากำลังทำสิ่งนี้ไปด้วยกันเพื่ออะไร?”
+
+สนุกได้ แต่ต้องได้อะไรกลับไปด้วยค่ะ`
+  },
+  {
+    id: 10,
+    category: "ขนาดกลุ่ม & สถานที่",
+    question: "อบรมกี่คนได้บ้าง?",
+    answer: `ได้ทั้งกลุ่มเล็กและกลุ่มใหญ่ค่ะ จำนวนคนจะมีผลต่อรูปแบบกิจกรรมและ Workshop:
+
+• กลุ่มเล็ก: สามารถพูดคุยและลงรายละเอียดได้ลึก
+• กลุ่มใหญ่: เราจะออกแบบกิจกรรมให้ทุกคนยังมีส่วนร่วมได้
+
+แจ้งจำนวนคนคร่าว ๆ มาได้เลย ทีมชุ่มฉ่ำช่วยแนะนำ Format ให้ค่ะ`
+  },
+  {
+    id: 11,
+    category: "ขนาดกลุ่ม & สถานที่",
+    question: "จัดอบรมที่บริษัทได้ไหม?",
+    answer: `ได้เลยค่ะ สามารถจัดแบบ In-house ที่บริษัทหรือสถานที่ที่องค์กรเตรียมไว้ได้ จะเป็นครึ่งวัน 1 วัน หรือหลาย Session ต่อเนื่อง ก็สามารถออกแบบได้ค่ะ`
+  },
+  {
+    id: 12,
+    category: "ขนาดกลุ่ม & สถานที่",
+    question: "มีอบรมออนไลน์ไหม?",
+    answer: `มีค่ะ บางหัวข้อสามารถออกแบบเป็น Online Workshop ได้ แต่ถ้าเป็นเรื่อง Team หรือ Culture ที่ต้องใช้ Interaction ค่อนข้างเยอะ ทีมจะแนะนำรูปแบบที่เหมาะกับผลลัพธ์ที่องค์กรต้องการค่ะ`
+  },
+  {
+    id: 13,
+    category: "ผลลัพธ์",
+    question: "หลังอบรมควรเห็นอะไรเปลี่ยนไป?",
+    answer: `เราไม่ได้อยากให้ผลลัพธ์จบแค่ “วันนี้อบรมสนุกมาก” แต่อยากเห็นคนกลับไปทำงานแล้ว:
+• เข้าใจตัวเองมากขึ้น
+• สื่อสารกันดีขึ้น
+• Feedback กันเป็นขึ้น
+• เข้าใจความแตกต่างของคน
+• มี Ownership กับงานมากขึ้น
+• ทำงานร่วมกันดีขึ้น
+• หัวหน้านำคนได้ดีขึ้น
+• ทีมเห็นเป้าหมายเดียวกันชัดขึ้น
+
+ผลลัพธ์จริงจะขึ้นอยู่กับโจทย์และรูปแบบของแต่ละโปรแกรมค่ะ`
+  },
+  {
+    id: 14,
+    category: "ราคา & เสนอราคา",
+    question: "ราคาหลักสูตรเท่าไร?",
+    answer: `ราคาจะขึ้นอยู่กับโจทย์ขององค์กรค่ะ เพราะเราไม่ได้มีหลักสูตรเดียวแล้วนำไปใช้เหมือนกันทุกบริษัท
+
+ราคาจะพิจารณาจาก:
+• หัวข้อ
+• จำนวนผู้เข้าอบรม
+• ระยะเวลา
+• รูปแบบ Workshop
+• ระดับการ Customize
+
+ส่งโจทย์มาให้ทีมก่อนได้เลยค่ะ เราจะช่วยแนะนำรูปแบบพร้อมจัดทำ Proposal และใบเสนอราคาให้`
+  },
+  {
+    id: 15,
+    category: "การปรึกษา",
+    question: "ยังไม่รู้เลยว่าควรเลือกหลักสูตรไหน ทำยังไงดี?",
+    answer: `ไม่ต้องเลือกมาก่อนก็ได้ค่ะ 🤍
+
+จริง ๆ สิ่งที่เราอยากรู้มากกว่าคือ:
+1. “ตอนนี้ทีมกำลังเจอปัญหาอะไร?”
+2. “หลังจากพัฒนาทีมแล้ว อยากเห็นอะไรเปลี่ยนไป?”
+
+เล่า 2 เรื่องนี้ให้เราฟัง ทีมชุ่มฉ่ำจะช่วยวิเคราะห์และแนะนำว่าองค์กรควรเริ่มพัฒนาจากตรงไหนค่ะ`
+  },
+  {
+    id: 16,
+    category: "การเริ่มต้น",
+    question: "ถ้าสนใจ เริ่มต้นยังไง?",
+    answer: `ทักมาคุยกับ “น้องฉ่ำ” ได้เลยค่ะ :)
+
+แจ้งคร่าว ๆ ว่า:
+• องค์กรทำธุรกิจอะไร
+• ตอนนี้ทีมกำลังเจอโจทย์อะไร
+• อยากเห็นอะไรเปลี่ยนหลังอบรม
+• จำนวนผู้เข้าอบรมประมาณกี่คน
+• ช่วงเวลาที่ต้องการจัด
+
+จากนั้นทีมชุ่มฉ่ำจะช่วยแนะนำรูปแบบหลักสูตรที่เหมาะกับองค์กรให้ค่ะ
+
+เพราะเราไม่ได้อยาก “จัดอบรมให้จบไปอีกหนึ่งวัน” แต่อยากให้สิ่งที่เกิดขึ้นในห้องเรียน กลับไปเปลี่ยน “สิ่งที่เกิดขึ้นในวันทำงานจริง”`
+  }
+];
 
 // Interactive Quiz Questions Data (Zombie Organization Check™)
 const QUIZ_QUESTIONS = [
@@ -125,97 +391,147 @@ const QUIZ_QUESTIONS = [
   }
 ];
 
-// Symptoms and Program Mapping
-const SYMPTOMS = [
-  { id: "burnout", label: "คนหมดไฟ / เฉื่อยชา", programId: "reborn-people", programName: "REBORN PEOPLE" },
-  { id: "silo", label: "ทีมต่างคนต่างทำ / เกิด Silo", programId: "alive-team", programName: "ALIVE TEAM" },
-  { id: "fear", label: "คนไม่กล้าเสนอไอเดีย", programId: "reborn-people", programName: "REBORN PEOPLE" },
-  { id: "no-innovation", label: "Innovation ลดลง / ขาดไอเดียใหม่", programId: "living-org", programName: "LIVING ORGANIZATION" },
-  { id: "leader-burnout", label: "ผู้นำแบกทุกอย่าง / ไมโครแมนเนจ", programId: "reborn-leader", programName: "REBORN LEADER" },
-  { id: "talent-loss", label: "คนเก่งเริ่มหมดพลัง / ลาออกเงียบ", programId: "reborn-people", programName: "REBORN PEOPLE" },
-  { id: "dead-culture", label: "Culture เหี่ยว / บรรยากาศซึมเศร้า", programId: "alive-team", programName: "ALIVE TEAM" },
-  { id: "change-resistance", label: "องค์กรเปลี่ยน แต่คนต้านเงียบ", programId: "living-org", programName: "LIVING ORGANIZATION" }
-];
-
-const PROGRAMS = [
+const PROGRAM_FORMATS = [
   {
-    id: "reborn-people",
-    title: "REBORN PEOPLE",
-    subtitle: "โปรแกรมสำหรับคน",
-    description: "สำหรับคนทำงานที่กำลังหมดไฟ ต้องการกลับมาค้นหาพลัง ความหมาย และความสดใหม่ในการทำงาน ชุบชีวิตคนทำงานด้วยกระบวนการสร้าง Mindset และการกลับมาเห็นคุณค่าในตัวเอง",
-    highlights: ["ค้นหาความหมายการทำงานใหม่ (Re-anchoring)", "ปรับทัศนคติฟื้นฟูแรงใจ (Energy Management)", "ดึงไฟในตัวคนทำงานกลับมามีพลังสร้างสรรค์"],
-    tags: ["People Reborn", "Mindset Shift", "Burnout Recovery"]
+    id: "inhouse",
+    title: "In-house Training & Workshop",
+    desc: "จัดอบรมภายในองค์กรเฉพาะทีม ออกแบบเนื้อหาและกิจกรรมตามโจทย์จริงของธุรกิจ",
+    icon: BookOpen,
+    tag: "Custom Workshop"
   },
   {
-    id: "alive-team",
-    title: "ALIVE TEAM",
-    subtitle: "โปรแกรมสำหรับทีม",
-    description: "เปลี่ยนทีมที่ต่างคนต่างทำ ให้กลับมาเชื่อมกัน สื่อสารกัน และสร้างสิ่งใหม่ร่วมกันอย่างมีประสิทธิภาพและไว้วางใจกัน ไร้ขอบเขต Silo",
-    highlights: ["สลายกำแพง Silo และความเฉยชาในทีม", "สร้าง Psychological Safety ในการคุยและแชร์ไอเดีย", "กิจกรรม Experiential Learning เชื่อมใจทีมงาน"],
-    tags: ["Team Reconnect", "Psychological Safety", "Collaboration"]
+    id: "comm",
+    title: "Communication Workshop",
+    desc: "เวิร์กช็อปยกระดับทักษะการฟัง การสื่อสารเชิงบวก การ Feedback และการคุยแบบเข้าใจกัน",
+    icon: MessageSquare,
+    tag: "Communication Mastery"
   },
   {
-    id: "reborn-leader",
-    title: "REBORN LEADER",
-    subtitle: "โปรแกรมสำหรับผู้นำ",
-    description: "สำหรับผู้นำที่ต้องการเปลี่ยนตัวเองและปรับกระบวนการทำงานก่อนพาทีมไปสู่การเปลี่ยนแปลง ปลดภาระไมโครแมนเนจและหันมาสนับสนุนปลดล็อกทีม",
-    highlights: ["ปรับบทบาทจากผู้ควบคุม (Manager) สู่ผู้เอื้ออำนวย (Facilitative Leader)", "สร้าง Ownership ให้กับทีมงานหน้างาน", "การนำทีมด้วยเป้าหมายและ Empathy"],
-    tags: ["Leader Shift", "Facilitation Skills", "Empowerment"]
+    id: "team",
+    title: "Team Development",
+    desc: "สร้าง Trust, Collaboration และความรู้สึกเป็นเจ้าของ (Ownership) เพื่อ Shared Goal เดียวกัน",
+    icon: Users,
+    tag: "Team Connection"
   },
   {
-    id: "living-org",
-    title: "LIVING ORGANIZATION",
-    subtitle: "โปรแกรมสำหรับองค์กร",
-    description: "กระบวนการ Transformation สำหรับองค์กรที่ต้องการสร้างวัฒนธรรมใหม่จากข้างใน ให้ลื่นไหลปรับตัวได้เองตามสถานการณ์และเกิดนวัตกรรมระดับรากหญ้า",
-    highlights: ["ร่วมออกแบบวัฒนธรรมองค์กรในทางปฏิบัติ", "กระบวนการสร้างแนวร่วมการเปลี่ยนแปลง (Change Alliance)", "วางระบบที่เอื้อต่อการมีส่วนร่วมและความคิดสร้างสรรค์"],
-    tags: ["Org Rebirth", "Culture Design", "Agile Transformation"]
+    id: "leader",
+    title: "Leadership Development",
+    desc: "พัฒนาหัวหน้าทีมและผู้บริหารให้เข้าใจทั้งมิติ 'งาน' และ 'คน' เพื่อนำทีมอย่างมีประสิทธิผล",
+    icon: Target,
+    tag: "Leader Shift"
+  },
+  {
+    id: "future",
+    title: "Future Leader Program",
+    desc: "บ่มเพาะผู้นำรุ่นใหม่ (Talents & Middle Management) ให้พร้อมก้าวขึ้นมาขับเคลื่อนองค์กร",
+    icon: Sparkles,
+    tag: "Next-Gen Talent"
+  },
+  {
+    id: "culture",
+    title: "Culture Workshop",
+    desc: "เปลี่ยน Core Values บนกระดาษให้กลายเป็นพฤติกรรม วิธีคิด และการปฏิบัติจริงในทุกวัน",
+    icon: ShieldCheck,
+    tag: "Culture in Action"
+  },
+  {
+    id: "custom",
+    title: "Customized Organization Program",
+    desc: "ออกแบบ Development Journey ต่อเนื่องระยะยาว ผสานหลายโมดูลตามเป้าหมายขององค์กร",
+    icon: Layers,
+    tag: "Full Transformation"
   }
 ];
 
-const TRANSFORMATION_STEPS = [
+const TARGET_CRITERIA = [
+  "มีคนเก่ง แต่ Collaboration ยังไม่แข็งแรง",
+  "ทีมต่างคนต่างทำ และต้องการสร้าง Shared Goal",
+  "ต้องการเพิ่ม Ownership ให้พนักงาน",
+  "กำลังพัฒนา Middle Management / Future Leader",
+  "หัวหน้าเก่งงาน แต่ต้องการพัฒนาทักษะการนำคน",
+  "ต้องการยกระดับ Communication ภายในองค์กร",
+  "มี Vision / Mission / Core Values แต่ต้องการทำให้เกิดขึ้นในการทำงานจริง",
+  "องค์กรกำลังโต และต้องการให้ “คน” โตทันธุรกิจ"
+];
+
+const EXPECTED_OUTCOMES = [
+  { text: "เข้าใจตัวเองมากขึ้น", desc: "รู้จุดแข็ง คุณค่า และบทบาทของตัวเองชัดเจน" },
+  { text: "สื่อสารกันดีขึ้น", desc: "คุยกันรู้เรื่อง ลดกำแพงและสลายความเข้าใจผิด" },
+  { text: "Feedback กันเป็นขึ้น", desc: "กล้าให้และรับคำติชมอย่างสร้างสรรค์เพื่อพัฒนางาน" },
+  { text: "เข้าใจความแตกต่างของคนมากขึ้น", desc: "ยอมรับและดึงจุดเด่นของเพื่อนร่วมงานมาเสริมกัน" },
+  { text: "มี Ownership กับงานมากขึ้น", desc: "รู้สึกเป็นเจ้าของ ไม่รอคำสั่ง พร้อมแก้ปัญหาเชิงรุก" },
+  { text: "ทำงานร่วมกันได้ดีขึ้น", desc: "ทลาย Silo และร่วมมือกันข้ามแผนกอย่างลื่นไหล" },
+  { text: "หัวหน้านำคนได้ดีขึ้น", desc: "รู้วิธีสร้างแรงบันดาลใจและดึงศักยภาพลูกทีมออกมา" },
+  { text: "ทั้งทีมเห็นเป้าหมายเดียวกันชัดขึ้น", desc: "ทุกคนมุ่งสู่ Shared Goal เดียวกันขององค์กร" }
+];
+
+const CASE_STUDIES = [
   {
-    id: "reset",
-    title: "RESET",
-    subtitle: "หยุดวงจรเดิม",
-    desc: "หยุดวงจรการทำงานแบบหุ่นยนต์ เพื่อมองเห็นสิ่งที่กำลังเกิดขึ้นกับตัวเองและทีมอย่างแท้จริง สะท้อนความตระหนักรู้แรก"
+    client: "มาดามฟิน (Madame Fin)",
+    tag: "Content Direction & Team Alignment",
+    before: "จากการทำ Content ที่ยังขาด Direction และทีมมองภาพไม่ตรงกัน",
+    after: "สู่การทำให้ทีมเห็นเป้าหมาย ทิศทางของการสื่อสารชัดเจน และทำงานร่วมกันอย่างมีพลัง",
+    quote: "“ทำให้คนในทีมเข้าใจสิ่งที่แบรนด์ต้องการสื่อสาร และร่วมมือกันสร้างผลงานได้อย่างตรงเป้าหมาย”"
   },
   {
-    id: "reconnect",
-    title: "RECONNECT",
-    subtitle: "กลับมาเชื่อมกัน",
-    desc: "กลับมาเชื่อมโยงกับตัวเอง ค้นพบความต้องการที่แท้จริง และเปิดใจเชื่อมโยงกับคนรอบข้างแบบไร้กำแพงกั้น"
+    client: "กังนัมคลินิก (Gangnam Clinic)",
+    tag: "Brand Value & Culture Alignment",
+    before: "จาก Brand Value ที่ต้องการส่งต่อให้คนในองค์กรทุกระดับเข้าใจ",
+    after: "สู่การทำให้ทีมเข้าใจและสื่อสารคุณค่าของแบรนด์ได้อย่างชัดเจน ทั้งต่อเพื่อนร่วมงานและลูกค้า",
+    quote: "“ช่วยเชื่อมต่อคุณค่าของแบรนด์ให้กลายเป็นวิธีทำงานและจิตวิญญาณของทีมงานในชีวิตจริง”"
+  }
+];
+
+const WORKSHOP_GALLERY_IMAGES = [
+  {
+    id: "g-1",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REset/reset1.JPG",
+    title: "Self-Reflection & Awareness — ค้นหาคุณค่าและตัวจริงในตัวเอง",
+    category: "Level 1: Reborn"
   },
   {
-    id: "recharge",
-    title: "RECHARGE",
-    subtitle: "เติมพลังชีวิต",
-    desc: "เติมพลังงานความสดใหม่ แรงบันดาลใจ และความรื่นเริงใจที่เป็นธรรมชาติของจิตวิญญาณมนุษย์"
+    id: "g-2",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REconnect/Reconnect1.jpg",
+    title: "Empathic Listening Circle — พื้นที่รับฟังและสื่อสารอย่างเข้าใจ",
+    category: "Level 2: Communication"
   },
   {
-    id: "reimagine",
-    title: "REIMAGINE",
-    subtitle: "มองมุมใหม่",
-    desc: "มองงาน มองทีม และมองอนาคตขององค์กรด้วยเลนส์และมุมมองใหม่ที่เป็นไปได้และสร้างสรรค์"
+    id: "g-3",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REcharge/Recharge1.JPG",
+    title: "Team Synergy & Trust Building — คนเก่งเก่งไปด้วยกัน",
+    category: "Level 3: Team"
   },
   {
-    id: "recreate",
-    title: "RECREATE",
-    subtitle: "ลงมือสร้างใหม่",
-    desc: "นำสิ่งที่คุณและทีมร่วมค้นพบกลับไปสร้างวิธีทำงาน วิธีการสื่อสาร และการลงมือทำจริงในออฟฟิศ"
+    id: "g-4",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REimagine/Reimagine1.jpg",
+    title: "Facilitative Leadership — พัฒนาหัวหน้านำคนและปลดล็อกทีม",
+    category: "Level 4: Leader"
+  },
+  {
+    id: "g-5",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REcreate/Recreate1.jpg",
+    title: "Culture in Action — เปลี่ยน Core Values สู่การลงมือทำจริง",
+    category: "Level 5: Culture"
+  },
+  {
+    id: "g-6",
+    url: "https://pub-52d5a8690c84469397e7f3027228203e.r2.dev/Alive_Model/REcreate/Recreate3.jpg",
+    title: "Experiential Learning — การเรียนรู้จากประสบการณ์ตรงเพื่อการเปลี่ยนแปลง",
+    category: "Organization"
   }
 ];
 
 export async function clientAction({ request }: Route.ClientActionArgs) {
   try {
     const formData = await request.formData();
-    const formType = (formData.get("form_type") as string) || "quiz";
+    const formType = (formData.get("form_type") as string) || "contact";
     const name = formData.get("name") as string;
     const company = formData.get("company") as string;
     const position = formData.get("position") as string;
     const email_or_line = formData.get("email_or_line") as string;
     const team_size = (formData.get("team_size") as string) || "";
     const score = parseInt((formData.get("score") as string) || "0", 10);
-    const result_level = (formData.get("result_level") as string) || "NEW";
+    const result_level = (formData.get("result_level") as string) || "CONSULTATION";
     const answersStr = formData.get("answers") as string;
     const answers = answersStr ? JSON.parse(answersStr) : [];
     
@@ -276,44 +592,48 @@ export default function Home() {
   const fetcher = useFetcher();
   const isSubmitting = fetcher.state === "submitting";
   
-  const hasSubmittedQuiz = fetcher.data && (fetcher.data as any).success && (fetcher.data as any).formType === "quiz";
-  const hasSubmittedContact = fetcher.data && (fetcher.data as any).success && (fetcher.data as any).formType === "contact";
+  const [quizSubmittedOverride, setQuizSubmittedOverride] = useState(false);
+  const hasSubmittedQuiz = !quizSubmittedOverride && Boolean(fetcher.data && (fetcher.data as any).success && (fetcher.data as any).formType === "quiz");
+  const hasSubmittedContact = Boolean(fetcher.data && (fetcher.data as any).success && (fetcher.data as any).formType === "contact");
 
   // Contact Form Tab State
   const [inquiryType, setInquiryType] = useState<"consultation" | "proposal" | "program">("consultation");
-  const [contactSubmittedOverride, setContactSubmittedOverride] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // FAQ open/close state (open multiple or single)
+  const [openFaqId, setOpenFaqId] = useState<number | null>(1);
 
   // Quiz States
   const [quizStarted, setQuizStarted] = useState(false);
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<number[]>([]);
   const [showLeadForm, setShowLeadForm] = useState(false);
+  const [lastCalculatedScore, setLastCalculatedScore] = useState(0);
 
-  // Result Mapping based on CI color rule
+  // Result Mapping
   const getResultLevel = (score: number) => {
     if (score >= 34) {
       return { 
         level: "ALIVE", 
-        title: "ALIVE - องค์กรมีพลังชีวิตเต็มเปี่ยม", 
+        title: "ALIVE - องค์กรมีพลังชีวิตและวัฒนธรรมเข้มแข็ง", 
         color: "text-brand-green border-brand-green bg-brand-green/10", 
         glow: "glow-green", 
-        desc: "องค์กรของคุณมีพลังชีวิตที่ดีเยี่ยม คนมี Ownership กล้าแสดงความเห็น และทีมร่วมมือร่วมใจกันสร้างสรรค์สิ่งใหม่ ขอชื่นชมวัฒนธรรมองค์กรที่แข็งแกร่งนี้! จุดท้าทายคือจะรักษามาตรฐานและช่วยให้องค์กรขยายสเกลโดยไม่สูญเสียจิตวิญญาณแห่งความเป็นมนุษย์ไปอย่างไร" 
+        desc: "องค์กรของคุณมีพลังชีวิตที่ดีเยี่ยม คนมี Ownership กล้าแสดงความเห็น และทีมร่วมมือร่วมใจกันสร้างสรรค์สิ่งใหม่ จุดท้าทายคือจะรักษามาตรฐานและช่วยให้องค์กรขยายสเกลโดยไม่สูญเสียจิตวิญญาณแห่งความเป็นมนุษย์ไปอย่างไร" 
       };
     }
     if (score >= 26) {
       return { 
         level: "TIRED", 
-        title: "TIRED - เริ่มมีสัญญาณความเหนื่อยสะสม", 
+        title: "TIRED - เริ่มมีสัญญาณความเหนื่อยสะสมและ Silo แอบแฝง", 
         color: "text-brand-yellow border-brand-yellow bg-brand-yellow/10", 
         glow: "glow-amber", 
-        desc: "องค์กรเริ่มมีสัญญาณความเฉื่อยและการสะสมความเหนื่อยล้า พนักงานยังคงทำงานได้ดีตาม KPI แต่เริ่มสูญเสียพลังสร้างสรรค์และความสนุกสนานในการสร้างสรรค์สิ่งใหม่ หากปล่อยทิ้งไว้โดยไม่เติมนวัตกรรมหรือการดูแลคน มีความเสี่ยงที่จะไหลลึกไปสู่ระดับ Faded" 
+        desc: "องค์กรเริ่มมีสัญญาณความเฉื่อยและการสะสมความเหนื่อยล้า พนักงานยังคงทำงานได้ดีตาม KPI แต่เริ่มสูญเสียพลังสร้างสรรค์และความคิดริเริ่ม หากปล่อยทิ้งไว้โดยไม่เติมนวัตกรรมหรือการดูแลคน มีความเสี่ยงที่จะไหลลึกไปสู่ระดับ Faded" 
       };
     }
     if (score >= 18) {
       return { 
         level: "FADED", 
-        title: "FADED - พลังของคนเริ่มจางหาย", 
+        title: "FADED - พลังของคนเริ่มจางหาย ต่างคนต่างทำ", 
         color: "text-brand-blue border-brand-blue bg-brand-blue/10", 
         glow: "glow-blue", 
         desc: "คนทำงานเริ่มแยกตัว ต่างคนต่างทำเพื่อเอาตัวรอด ประชุมค่อนข้างเงียบและมีการสื่อสารแนวราบที่ลดลง ความเฉื่อยชากำลังกลายเป็นนิสัยปกติใหม่ในบริษัท ความคิดสร้างสรรค์และนวัตกรรมเริ่มหดหายไป ต้องการการรื้อฟื้นแนวคิดและเติมพลังความเชื่อมโยงในทีมด่วน" 
@@ -321,29 +641,36 @@ export default function Home() {
     }
     return { 
       level: "ZOMBIE", 
-      title: "ZOMBIE - ร่างยังทำแต่งาน ใจไม่ได้อยู่แล้ว", 
+      title: "ZOMBIE - ร่างยังทำแต่งาน แต่ใจขาดพื้นที่แสดงศักยภาพ", 
       color: "text-brand-pink border-brand-pink bg-brand-pink/10", 
       glow: "glow-pink", 
-      desc: "องค์กรของคุณอยู่ในขีดอันตรายสูงสุด พนักงานทำงานแบบไร้วิญญาณเหมือนซอมบี้ ทำตามคำสั่งไปวันๆ เพื่อรอเวลาเลิกงาน ไม่กล้าพูด ไม่มีความสุข และ Silo แยกส่วนขัดแย้งรุนแรง ปล่อยไว้อนาคตองค์กรจะโตยากเพราะคนข้างในหมดไฟสะสม ต้องการการฟื้นฟู Transformation จากข้างในด่วนที่สุด!" 
+      desc: "องค์กรของคุณอยู่ในขีดอันตรายสูงสุด พนักงานทำงานแบบไร้วิญญาณเหมือนหุ่นยนต์ ทำตามคำสั่งไปวันๆ เพื่อรอเวลาเลิกงาน ไม่กล้าพูด ไม่มีความสุข และ Silo แยกส่วนขัดแย้งรุนแรง ปล่อยไว้อนาคตองค์กรจะโตยากเพราะคนข้างในหมดไฟสะสม ต้องการการฟื้นฟู Transformation จากข้างในด่วนที่สุด!" 
     };
   };
 
-  const currentScore = quizAnswers.reduce((sum, val) => sum + val, 0);
+  const currentScore = quizAnswers.length > 0 
+    ? quizAnswers.reduce((sum, val) => sum + val, 0)
+    : lastCalculatedScore;
   const resultInfo = getResultLevel(currentScore);
 
-  // Symptom Checker State
-  const [selectedSymptom, setSelectedSymptom] = useState<string | null>(null);
+  // Gallery Lightbox State
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  // Transformation Animation State (0 to 4 steps)
-  const [transStep, setTransStep] = useState(0);
-
-  // Auto transition animation loop
+  // Lightbox keyboard navigation
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTransStep((prev) => (prev + 1) % 5);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+    if (lightboxIndex === null) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxIndex(null);
+      if (e.key === "ArrowLeft") {
+        setLightboxIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : WORKSHOP_GALLERY_IMAGES.length - 1));
+      }
+      if (e.key === "ArrowRight") {
+        setLightboxIndex((prev) => (prev !== null && prev < WORKSHOP_GALLERY_IMAGES.length - 1 ? prev + 1 : 0));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxIndex]);
 
   const handleAnswerSelect = (score: number) => {
     const newAnswers = [...quizAnswers, score];
@@ -352,15 +679,30 @@ export default function Home() {
     if (currentQIndex < QUIZ_QUESTIONS.length - 1) {
       setCurrentQIndex(currentQIndex + 1);
     } else {
+      const finalScore = newAnswers.reduce((sum, val) => sum + val, 0);
+      setLastCalculatedScore(finalScore);
       setShowLeadForm(true);
     }
   };
 
   const restartQuiz = () => {
+    setQuizSubmittedOverride(true);
     setQuizStarted(false);
     setCurrentQIndex(0);
     setQuizAnswers([]);
     setShowLeadForm(false);
+    setLastCalculatedScore(0);
+    
+    if (typeof document !== "undefined") {
+      const elem = document.getElementById("zombie-check");
+      if (elem) {
+        elem.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
+
+  const toggleFaq = (id: number) => {
+    setOpenFaqId(openFaqId === id ? null : id);
   };
 
   return (
@@ -371,13 +713,13 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
           <a href="#" className="flex items-center gap-3 group">
             <img 
-              src="/logo.jpg" 
-              alt="บ้านชุ่มฉ่ำ Choomcham House Logo" 
-              className="w-10 h-10 rounded-2xl shadow-xs object-cover group-hover:scale-105 transition-transform duration-300 border border-brand-purple/15 bg-white p-0.5" 
+              src="/chumcham.png" 
+              alt="Choomcham Branding Logo" 
+              className="w-10 h-10 rounded-2xl shadow-xs object-contain group-hover:scale-105 group-hover:rotate-6 transition-all duration-300 border border-brand-purple/15 bg-white p-1" 
             />
             <div className="flex flex-col">
               <span className="font-display font-black text-lg sm:text-xl tracking-tight text-brand-purple leading-none group-hover:text-brand-pink transition-colors">
-                บ้านชุ่มฉ่ำ
+                ชุ่มฉ่ำ
               </span>
               <span className="font-display font-bold text-[9px] sm:text-[10px] tracking-widest text-brand-pink uppercase leading-tight mt-0.5">
                 CHOOMCHAM HOUSE
@@ -385,12 +727,20 @@ export default function Home() {
             </div>
           </a>
 
-          {/* Desktop Nav Links (Clean & Non-redundant) */}
-          <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold tracking-wide text-brand-gray font-display">
-            <a href="#zombie-check" className="hover:text-brand-purple transition-colors">สภาวะ Zombie</a>
-            <a href="#model" className="hover:text-brand-purple transition-colors">กระบวนการ Reborn</a>
-            <a href="#programs" className="hover:text-brand-purple transition-colors">หลักสูตรองค์กร</a>
-            <a href="#work" className="hover:text-brand-purple transition-colors">วิธีทำงาน</a>
+          {/* Desktop Nav Links */}
+          <nav className="hidden lg:flex items-center gap-5 text-sm font-semibold tracking-wide text-brand-gray font-display">
+            <a href="#authentic-org" className="hover:text-brand-purple transition-colors">องค์กรตัวจริง™</a>
+            <a href="#levels" className="hover:text-brand-purple transition-colors">5 ระดับการเติบโต</a>
+            <a href="#programs" className="hover:text-brand-purple transition-colors">หลักสูตร & โปรแกรม</a>
+            <a 
+              href="#zombie-check" 
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-50 text-brand-pink font-bold border border-brand-pink/30 hover:bg-brand-pink hover:text-white transition-all shadow-xs"
+            >
+              <span>🧟</span>
+              <span>Zombie Check™</span>
+            </a>
+            <a href="#experience" className="hover:text-brand-purple transition-colors">ประสบการณ์ & ลูกค้า</a>
+            <a href="#faq" className="hover:text-brand-purple transition-colors">FAQ</a>
             <a href="#about" className="hover:text-brand-purple transition-colors">เกี่ยวกับเรา</a>
           </nav>
 
@@ -398,25 +748,27 @@ export default function Home() {
           <div className="hidden sm:flex items-center gap-2.5">
             <a 
               href="#zombie-check" 
-              className="px-4 py-2 rounded-pill border border-brand-pink/30 text-brand-pink hover:bg-brand-pink/10 font-display font-semibold text-xs tracking-wide transition-all duration-300 uppercase"
+              className="px-4 py-2 rounded-pill border border-brand-pink text-brand-pink hover:bg-brand-pink/10 font-display font-bold text-xs tracking-wide transition-all duration-300 flex items-center gap-1.5"
             >
-              ตรวจสุขภาพองค์กร
+              <span>🧟</span>
+              <span>เช็คสภาวะ Zombie</span>
             </a>
             <a 
               href="#contact" 
               className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-pill bg-brand-pink text-brand-white font-display font-semibold text-xs tracking-wide hover:shadow-[0_4px_14px_rgba(227,52,107,0.35)] hover:-translate-y-0.5 transition-all duration-300 block text-center uppercase"
             >
-              นัดคุย / ขอ Proposal
+              ปรึกษาโจทย์องค์กร
             </a>
           </div>
 
           {/* Mobile Actions & Hamburger Toggle */}
           <div className="flex items-center gap-2 lg:hidden">
             <a 
-              href="#contact" 
-              className="sm:hidden px-3 py-1.5 rounded-pill bg-brand-pink text-brand-white font-display font-bold text-[11px] uppercase tracking-wide"
+              href="#zombie-check" 
+              className="px-3 py-1.5 rounded-pill bg-brand-pink/10 text-brand-pink border border-brand-pink/30 font-display font-bold text-[11px] tracking-wide flex items-center gap-1"
             >
-              นัดคุย
+              <span>🧟</span>
+              <span>Zombie Check</span>
             </a>
             <button
               type="button"
@@ -429,116 +781,79 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Mobile Slide-down Sub-Menu Drawer */}
+        {/* Mobile Slide-down Sub-Menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-brand-border/60 bg-white/98 backdrop-blur-xl px-6 py-6 shadow-2xl animate-in slide-in-from-top-4 duration-200">
-            <div className="space-y-6 max-w-md mx-auto">
-              
-              {/* Category 1: Assessment */}
-              <div>
-                <span className="text-[10px] font-black text-brand-pink tracking-widest uppercase block mb-2 font-display">
-                  🧟 1. ตรวจประเมินสุขภาพองค์กร
-                </span>
-                <div className="space-y-1.5 pl-3 border-l-2 border-brand-pink/30">
-                  <a
-                    href="#zombie-check"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
-                  >
-                    <span>แบบประเมิน Zombie Organization Check™</span>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  </a>
-                  <a
-                    href="#pain"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between py-1 text-xs text-slate-600 hover:text-brand-purple transition-colors"
-                  >
-                    <span>สัญญาณเตือนภาวะองค์กรหมดไฟ</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                  </a>
+            <div className="space-y-4 max-w-md mx-auto">
+              <a
+                href="#zombie-check"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-pink-50 to-purple-50 border border-brand-pink/20 text-sm font-bold text-brand-pink"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🧟</span>
+                  <span>Zombie Organization Check™ (แบบประเมินฟรี)</span>
                 </div>
-              </div>
-
-              {/* Category 2: Programs & Model */}
-              <div>
-                <span className="text-[10px] font-black text-brand-purple tracking-widest uppercase block mb-2 font-display">
-                  🚀 2. กระบวนการ & หลักสูตร
-                </span>
-                <div className="space-y-1.5 pl-3 border-l-2 border-brand-purple/30">
-                  <a
-                    href="#model"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
-                  >
-                    <span>5 ขั้นตอนการเกิดใหม่ (Reset → Recreate)</span>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  </a>
-                  <a
-                    href="#programs"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between py-1 text-xs text-slate-600 hover:text-brand-purple transition-colors"
-                  >
-                    <span>4 หลักสูตรหลัก (People, Team, Leader, Org)</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                  </a>
-                  <a
-                    href="#work"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between py-1 text-xs text-slate-600 hover:text-brand-purple transition-colors"
-                  >
-                    <span>แนวทางการจัดประสบการณ์และการทำงาน</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                  </a>
-                </div>
-              </div>
-
-              {/* Category 3: About & Philosophy */}
-              <div>
-                <span className="text-[10px] font-black text-brand-green tracking-widest uppercase block mb-2 font-display">
-                  🌿 3. เกี่ยวกับบ้านชุ่มฉ่ำ
-                </span>
-                <div className="space-y-1.5 pl-3 border-l-2 border-brand-green/30">
-                  <a
-                    href="#about"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
-                  >
-                    <span>เรื่องราวและความเชื่อของเรา</span>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  </a>
-                  <a
-                    href="#belief"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between py-1 text-xs text-slate-600 hover:text-brand-purple transition-colors"
-                  >
-                    <span>“แบรนด์ที่มีชีวิต เริ่มจากคนที่มีชีวิต”</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                  </a>
-                </div>
-              </div>
-
-              {/* Action Buttons in Drawer */}
+                <ChevronRight className="w-4 h-4 text-brand-pink" />
+              </a>
+              <a
+                href="#authentic-org"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
+              >
+                <span>1. องค์กรตัวจริง™ (Framework)</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </a>
+              <a
+                href="#levels"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
+              >
+                <span>2. 5 ระดับการเติบโต (Level 1-5)</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </a>
+              <a
+                href="#programs"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
+              >
+                <span>3. หลักสูตร From Zombie to Living Org</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </a>
+              <a
+                href="#experience"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
+              >
+                <span>4. ประสบการณ์ & ลูกค้าที่ไว้วางใจ</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </a>
+              <a
+                href="#faq"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
+              >
+                <span>5. คำถามที่พบบ่อย (FAQ)</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </a>
+              <a
+                href="#about"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between py-1 text-sm font-semibold text-slate-800 hover:text-brand-purple transition-colors"
+              >
+                <span>6. เกี่ยวกับ Choomcham House</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </a>
               <div className="pt-4 border-t border-slate-100 space-y-2">
                 <a
                   href="#contact"
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full py-3 rounded-xl bg-brand-pink text-white font-bold text-center text-xs flex items-center justify-center gap-2 shadow-md uppercase tracking-wider"
                 >
-                  <span>นัดพูดคุย / ขอใบเสนอราคา</span>
+                  <span>ปรึกษาและออกแบบหลักสูตร</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </a>
-                <a
-                  href="/proposal?company=องค์กรของคุณ&price=185000"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full py-2.5 rounded-xl border border-purple-200 bg-purple-50 text-purple-900 font-bold text-center text-xs flex items-center justify-center gap-2 transition-colors"
-                >
-                  <FileText className="w-3.5 h-3.5 text-purple-700" />
-                  <span>ดูตัวอย่าง Proposal ดิจิทัล</span>
-                </a>
               </div>
-
             </div>
           </div>
         )}
@@ -547,682 +862,200 @@ export default function Home() {
       {/* Main Container */}
       <main className="relative z-10">
 
-        {/* SECTION 1: HERO */}
-        <section id="hero" className="relative min-h-[90vh] flex items-center justify-center py-20 px-6 overflow-hidden bg-brand-purple text-brand-white">
-          {/* Decorative organic shapes */}
-          <div className="absolute top-20 left-1/4 w-80 h-80 bg-brand-yellow/10 rounded-full blur-[100px] pointer-events-none animate-pulse-glow"></div>
-          <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-brand-pink/10 rounded-full blur-[120px] pointer-events-none animate-float"></div>
+        {/* ========================================================
+            SECTION 1: HERO / องค์กรตัวจริง™
+        ======================================================== */}
+        <section id="authentic-org" className="relative py-20 lg:py-28 px-6 bg-gradient-to-b from-[#323689] via-brand-purple to-[#2A2D73] text-brand-white overflow-hidden">
+          {/* Decorative ambient glows */}
+          <div className="absolute top-10 left-1/4 w-80 h-80 bg-brand-yellow/15 rounded-full blur-[100px] pointer-events-none animate-pulse-glow"></div>
+          <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-brand-pink/15 rounded-full blur-[120px] pointer-events-none animate-float"></div>
 
           <div className="max-w-5xl mx-auto text-center relative z-10 flex flex-col items-center">
             
-            {/* Official Logo Badge */}
-            <div className="mb-6 relative group">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-white p-2.5 shadow-2xl shadow-brand-pink/25 ring-4 ring-white/20 group-hover:scale-105 transition-transform duration-300 mx-auto">
+            {/* Logo Avatar */}
+            <div className="mb-6 group">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-white p-2.5 shadow-2xl shadow-black/30 ring-4 ring-white/20 group-hover:scale-105 transition-transform duration-300 mx-auto flex items-center justify-center">
                 <img 
-                  src="/logo.jpg" 
-                  alt="บ้านชุ่มฉ่ำ Choomcham House" 
-                  className="w-full h-full object-contain rounded-2xl" 
+                  src="/chumcham.png" 
+                  alt="Choomcham Branding" 
+                  className="w-full h-full object-contain drop-shadow-sm group-hover:rotate-6 transition-transform duration-500" 
                 />
               </div>
             </div>
 
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-pill border border-brand-pink/30 bg-brand-pink/10 text-brand-pink text-xs font-bold uppercase tracking-widest mb-8 font-display">
-              <Zap className="w-3.5 h-3.5" />
-              ช่วยคนและองค์กร “เกิดใหม่จากข้างใน”
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-pill border border-brand-pink/30 bg-brand-pink/10 text-brand-pink text-xs sm:text-sm font-bold tracking-widest mb-6 font-display uppercase">
+              <Sparkles className="w-4 h-4 text-brand-pink" />
+              THE AUTHENTIC ORGANIZATION
             </div>
 
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-sans font-extrabold tracking-tight leading-tight mb-8 max-w-4xl text-balance">
-              องค์กรของคุณกำลังมีคนที่ยังมาทำงาน <br />
-              แต่<span className="text-brand-yellow relative">
-                ไม่มีพลัง
-                <span className="absolute left-0 bottom-1 w-full h-1.5 bg-brand-yellow/20 rounded"></span>
-              </span>ในการสร้างอะไรใหม่หรือเปล่า?
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight leading-tight mb-3 font-display">
+              องค์กรตัวจริง™
             </h1>
-
-            <p className="text-lg sm:text-xl text-brand-surface max-w-3xl leading-relaxed mb-12 text-balance font-normal">
-              คนยังอยู่ครบ งานยังเดิน แต่ความสดใส ความกระตือรือร้น <br className="hidden sm:inline" />
-              และพลังบางอย่างกำลังหายไป... Choomcham House ช่วยองค์กรปลุกพลังคน <br className="hidden sm:inline" />
-              เชื่อมทีม และสร้างการเปลี่ยนแปลงจากข้างใน
-            </p>
-
-            {/* Metaphor Visual Banner */}
-            <div className="inline-flex items-center gap-4 px-6 py-3 rounded-md bg-brand-white/10 border border-brand-white/10 mb-12 text-xs sm:text-sm font-semibold tracking-wide font-display">
-              <span className="text-brand-gray line-through">Zombie Organization</span>
-              <span className="text-brand-yellow font-display">→</span>
-              <span className="text-brand-green font-display glow-green">Living Organization</span>
+            <div className="text-xl sm:text-3xl font-extrabold text-brand-yellow tracking-wider mb-6 uppercase font-display">
+              THE AUTHENTIC ORGANIZATION
             </div>
 
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-center gap-6 justify-center w-full max-w-md">
-              <a 
-                href="#zombie-check" 
-                className="w-full sm:w-auto px-8 py-4 rounded-pill bg-brand-pink text-brand-white font-display font-bold text-lg tracking-wide hover:shadow-[0_0_25px_rgba(227,52,107,0.5)] hover:scale-105 transition-all duration-300 text-center"
-              >
-                ให้ทีมของคุณเกิดใหม่
-              </a>
-              <a 
-                href="#contact" 
-                className="w-full sm:w-auto px-8 py-4 rounded-pill border border-brand-white/30 bg-brand-white/5 hover:bg-brand-white/15 text-brand-white font-display font-semibold text-lg transition-all duration-300 text-center"
-              >
-                คุยกับเรา
-              </a>
+            <div className="inline-block px-5 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white font-display font-semibold text-base sm:text-lg mb-8">
+              ภายใต้แนวคิด <strong className="text-brand-pink font-bold">“ตัวจริงต้องมีที่ยืน”</strong>
             </div>
 
-          </div>
-        </section>
-
-
-        {/* SECTION 2: ZOMBIE CHECK (Zombie Organization Check™) */}
-        <section id="zombie-check" className="py-24 px-6 relative bg-brand-white text-brand-black border-b border-brand-border">
-          <div className="max-w-6xl mx-auto">
-            
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-20 items-center">
-              
-              <div className="lg:col-span-5 space-y-6">
-                <span className="text-brand-pink text-xs font-bold tracking-widest uppercase block font-display">01 — คุณกำลังมี “Zombie Organization” หรือเปล่า?</span>
-                <h2 className="text-3xl sm:text-5xl font-sans font-extrabold leading-tight">
-                  คนในองค์กรไม่ได้แย่ลง แต่พวกเขาอาจกำลัง <span className="text-brand-pink">“หมดชีวิต”</span> กับการทำงาน
-                </h2>
-                <p className="text-brand-gray leading-relaxed">
-                  งานยังดำเนินไปได้ปกติ แต่หากสังเกตดีๆ พลังงานสร้างสรรค์ในองค์กรของคุณกำลังหดหายและกลายเป็นซอมบี้ไปทีละส่วน
-                </p>
-                <div className="p-6 rounded-lg border border-brand-pink/20 bg-brand-pink/5 relative overflow-hidden">
-                  <h4 className="text-sm font-bold text-brand-black mb-1">🚨 สิ่งที่น่ากลัวที่สุดไม่ใช่คนลาออก...</h4>
-                  <p className="text-brand-pink font-display font-black text-xl md:text-2xl leading-snug">
-                    แต่คือ... คนยังอยู่ แต่ใจไม่ได้อยู่กับองค์กรแล้ว
-                  </p>
-                </div>
-              </div>
-
-              {/* Symptoms Grid */}
-              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  "มาทำงานตรงเวลา แต่ทำแค่ตามหน้าที่",
-                  "ประชุมเยอะ แต่ไม่มีไอเดียใหม่",
-                  "ทุกคนทำงานของตัวเอง แต่ไม่รู้สึกเป็นทีม",
-                  "ไม่ค่อยกล้าเสนอความคิดเห็น",
-                  "ต้องคอยกระตุ้นตลอด",
-                  "คนเก่งเริ่มหมดไฟ",
-                  "งานยังเดิน แต่ไม่มีพลัง",
-                  "ทุกคนรอวันหยุด"
-                ].map((item, idx) => (
-                  <div key={idx} className="p-5 rounded-md bg-brand-surface border border-brand-border hover:border-brand-pink/25 transition-all flex items-start gap-3">
-                    <span className="w-5 h-5 rounded-full bg-brand-pink/15 text-brand-pink flex items-center justify-center text-xs shrink-0 mt-0.5">🧟</span>
-                    <span className="text-sm sm:text-base text-brand-gray font-medium">{item}</span>
-                  </div>
-                ))}
-              </div>
-
-            </div>
-
-            {/* Quiz Container Box */}
-            <div className="max-w-4xl mx-auto glass-panel rounded-lg p-8 md:p-12 relative overflow-hidden border border-brand-border shadow-sm">
-              
-              <div className="text-center mb-10">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-pill bg-brand-pink/10 border border-brand-pink/20 text-brand-pink text-xs font-bold uppercase tracking-wider mb-3 font-display">
-                  <HelpCircle className="w-3.5 h-3.5 glow-pink" />
-                  Zombie Organization Check™
-                </div>
-                <h3 className="text-2xl sm:text-3xl font-sans font-bold">องค์กรของคุณกำลังเป็นซอมบี้แค่ไหน? 🧟</h3>
-                <p className="text-brand-gray text-sm mt-2">
-                  ตอบ 10 คำถามเพื่อวัดสภาวะจริง เพื่อค้นหาว่าองค์กรมีพลังแค่ไหนและควรเริ่มพัฒนาที่จุดใด
-                </p>
-              </div>
-
-              {!quizStarted && !showLeadForm && !hasSubmittedQuiz && (
-                <div className="text-center py-8">
-                  <p className="text-brand-gray text-sm mb-6 max-w-md mx-auto">
-                    ใช้เวลาประเมินเพียง 2 นาที พร้อมรับรายงานเบื้องต้นประกอบการเกิดใหม่ขององค์กร
-                  </p>
-                  <button 
-                    onClick={() => setQuizStarted(true)}
-                    className="px-8 py-4 rounded-pill bg-brand-pink text-brand-white font-display font-bold text-lg tracking-wide hover:shadow-[0_4px_14px_rgba(227,52,107,0.35)] transition-all duration-300"
-                  >
-                    เริ่มตรวจสภาวะซอมบี้
-                  </button>
-                </div>
-              )}
-
-              {quizStarted && !showLeadForm && (
-                <div>
-                  <div className="flex items-center justify-between mb-6 text-xs sm:text-sm font-display">
-                    <span className="font-semibold text-brand-purple">คำถาม {QUIZ_QUESTIONS[currentQIndex].id} / 10</span>
-                    <span className="text-brand-gray">ความคืบหน้า {Math.round(((currentQIndex) / QUIZ_QUESTIONS.length) * 100)}%</span>
-                  </div>
-
-                  <div className="w-full bg-brand-surface rounded-pill h-2 mb-8 overflow-hidden">
-                    <div 
-                      className="bg-brand-pink h-full transition-all duration-500"
-                      style={{ width: `${((currentQIndex + 1) / QUIZ_QUESTIONS.length) * 100}%` }}
-                    ></div>
-                  </div>
-
-                  <h3 className="text-lg sm:text-xl font-bold mb-8 leading-snug">
-                    {QUIZ_QUESTIONS[currentQIndex].question}
-                  </h3>
-
-                  <div className="grid grid-cols-1 gap-3.5">
-                    {QUIZ_QUESTIONS[currentQIndex].answers.map((answer, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleAnswerSelect(answer.score)}
-                        className="w-full text-left p-4.5 rounded-md border border-brand-border hover:border-brand-purple bg-brand-white hover:bg-brand-surface text-brand-black transition-all duration-300 flex items-start gap-4 group text-sm sm:text-base"
-                      >
-                        <span className="w-6 h-6 rounded-pill border border-brand-border group-hover:border-brand-purple flex items-center justify-center text-xs font-semibold text-brand-gray group-hover:text-brand-purple shrink-0 mt-0.5 font-display">
-                          {String.fromCharCode(65 + index)}
-                        </span>
-                        <span>{answer.text}</span>
-                      </button>
-                    ))}
-                  </div>
-
-                  {currentQIndex > 0 && (
-                    <button 
-                      onClick={() => {
-                        setCurrentQIndex(currentQIndex - 1);
-                        setQuizAnswers(quizAnswers.slice(0, -1));
-                      }}
-                      className="mt-6 text-xs text-brand-gray hover:text-brand-purple transition-colors flex items-center gap-1 font-display"
-                    >
-                      <ChevronLeft className="w-4 h-4" /> ย้อนกลับ
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {showLeadForm && !hasSubmittedQuiz && (
-                <div className="max-w-lg mx-auto">
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-bold mb-2">ประเมินสภาวะเสร็จสิ้น!</h3>
-                    <p className="text-brand-gray text-xs">
-                      กรอกรายละเอียดเพื่อประมวลผลลัพธ์และรับ **Organization Rebirth Report** แบบเต็มรูปแบบผ่านอีเมลหรือไลน์
-                    </p>
-                  </div>
-
-                  <fetcher.Form method="post" className="space-y-4">
-                    <input type="hidden" name="form_type" value="quiz" />
-                    <input type="hidden" name="score" value={currentScore} />
-                    <input type="hidden" name="result_level" value={resultInfo.level} />
-                    <input type="hidden" name="answers" value={JSON.stringify(quizAnswers)} />
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <input 
-                        type="text" 
-                        name="name" 
-                        required
-                        placeholder="ชื่อ-นามสกุล"
-                        className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-md px-4 py-2.5 text-sm text-brand-black outline-none transition-colors"
-                      />
-                      <input 
-                        type="text" 
-                        name="company" 
-                        required
-                        placeholder="บริษัท / องค์กร"
-                        className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-md px-4 py-2.5 text-sm text-brand-black outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <input 
-                        type="text" 
-                        name="position" 
-                        required
-                        placeholder="ตำแหน่งงาน"
-                        className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-md px-4 py-2.5 text-sm text-brand-black outline-none transition-colors"
-                      />
-                      <select 
-                        name="team_size"
-                        className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-md px-4 py-2.5 text-sm text-brand-black outline-none transition-colors appearance-none"
-                      >
-                        <option value="">เลือกขนาดทีม</option>
-                        <option value="1-20 คน">ต่ำกว่า 20 คน</option>
-                        <option value="21-100 คน">21 - 100 คน</option>
-                        <option value="101-500 คน">101 - 500 คน</option>
-                        <option value="500+ คน">500 คนขึ้นไป</option>
-                      </select>
-                    </div>
-
-                    <input 
-                      type="text" 
-                      name="email_or_line" 
-                      required
-                      placeholder="อีเมล หรือ ID LINE สำหรับส่งข้อมูล"
-                      className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-md px-4 py-2.5 text-sm text-brand-black outline-none transition-colors"
-                    />
-
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full py-3.5 rounded-pill bg-brand-pink text-brand-white font-display font-bold text-sm tracking-wide transition-all duration-300 hover:shadow-[0_4px_14px_rgba(227,52,107,0.35)] disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                      {isSubmitting ? "กำลังวิเคราะห์..." : "รับผลประเมินของคุณเลย"}
-                    </button>
-                  </fetcher.Form>
-                </div>
-              )}
-
-              {hasSubmittedQuiz && (
-                <div className="text-center py-4 max-w-lg mx-auto">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill border border-brand-green/30 bg-brand-green/10 text-brand-green text-xs font-semibold mb-4 font-display">
-                    <CheckCircle className="w-3.5 h-3.5" /> วิเคราะห์เสร็จสิ้น
-                  </div>
-
-                  <h3 className="text-xl font-bold mb-2">สภาวะองค์กรของคุณ:</h3>
-                  <div className={`inline-block border rounded-lg px-6 py-2.5 font-display font-black text-xl mb-6 ${resultInfo.color} ${resultInfo.glow}`}>
-                    {resultInfo.title}
-                  </div>
-
-                  <p className="text-brand-gray text-sm leading-relaxed mb-6 text-left p-5 rounded-lg bg-brand-surface border border-brand-border">
-                    {resultInfo.desc}
-                  </p>
-
-                  <div className="flex gap-4 justify-center">
-                    <a href="#contact" className="px-6 py-3 rounded-pill bg-brand-pink text-brand-white font-display font-bold text-sm tracking-wide transition-all hover:scale-105">
-                      นัดวิเคราะห์โจทย์องค์กร
-                    </a>
-                    <button onClick={restartQuiz} className="px-5 py-3 rounded-pill border border-brand-border text-brand-gray hover:text-brand-purple text-xs font-display transition-colors">
-                      ทำแบบประเมินอีกครั้ง
-                    </button>
-                  </div>
-                </div>
-              )}
-
-            </div>
-
-          </div>
-        </section>
-
-
-        {/* SECTION 3: PAIN (คุณกำลังมี “Zombie Organization” หรือเปล่า?) */}
-        <section id="pain" className="py-24 px-6 bg-brand-surface border-b border-brand-border relative">
-          <div className="max-w-6xl mx-auto">
-            
-            <div className="text-center mb-16">
-              <span className="text-brand-pink text-xs font-bold tracking-widest uppercase block font-display">01 — คุณกำลังมี “Zombie Organization” หรือเปล่า?</span>
-              <h2 className="text-3xl sm:text-5xl font-sans font-extrabold max-w-3xl mx-auto leading-tight mt-2">
-                เมื่อองค์กรเริ่มขาดลมหายใจ... มันคือภาวะกัดกินพลังสร้างสรรค์
-              </h2>
-            </div>
-
-            {/* Asymmetric / Offset cards layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-              
-              <div className="p-8 rounded-lg bg-brand-white border border-brand-border shadow-sm hover:-translate-y-1 transition-all duration-300">
-                <div className="w-12 h-12 rounded-md bg-brand-pink/10 flex items-center justify-center mb-6">
-                  <ShieldAlert className="w-6 h-6 text-brand-pink" />
-                </div>
-                <h3 className="text-lg font-bold mb-3 font-display">Zombie Workers</h3>
-                <p className="text-brand-gray text-sm leading-relaxed">
-                  พนักงานมาตรงเวลา แต่ทำงานเฉพาะตามสั่งแบบเฉื่อยชา ไร้จิตวิญญาณและความคิดริเริ่ม
-                </p>
-              </div>
-
-              <div className="p-8 rounded-lg bg-brand-white border border-brand-border shadow-sm hover:-translate-y-1 transition-all duration-300 md:translate-y-4">
-                <div className="w-12 h-12 rounded-md bg-brand-yellow/10 flex items-center justify-center mb-6">
-                  <AlertCircle className="w-6 h-6 text-brand-yellow" />
-                </div>
-                <h3 className="text-lg font-bold mb-3 font-display">Idea Graveyard</h3>
-                <p className="text-brand-gray text-sm leading-relaxed">
-                  ห้องประชุมที่เงียบงัน ทุกคนพยักหน้าเห็นด้วยเพื่อรีบจบประชุม แต่ไม่มีใครเสนออะไรใหม่ๆ
-                </p>
-              </div>
-
-              <div className="p-8 rounded-lg bg-brand-white border border-brand-border shadow-sm hover:-translate-y-1 transition-all duration-300">
-                <div className="w-12 h-12 rounded-md bg-brand-blue/10 flex items-center justify-center mb-6">
-                  <Users className="w-6 h-6 text-brand-blue" />
-                </div>
-                <h3 className="text-lg font-bold mb-3 font-display">Silo Division</h3>
-                <p className="text-brand-gray text-sm leading-relaxed">
-                  การแยกขอบเขตปกป้องเขตแดน ไม่มีความร่วมมือในแนวราบ ต่างฝ่ายต่างอยู่สงครามเย็น
-                </p>
-              </div>
-
-              <div className="p-8 rounded-lg bg-brand-white border border-brand-border shadow-sm hover:-translate-y-1 transition-all duration-300 md:translate-y-4">
-                <div className="w-12 h-12 rounded-md bg-brand-pink/10 flex items-center justify-center mb-6">
-                  <Flame className="w-6 h-6 text-brand-pink" />
-                </div>
-                <h3 className="text-lg font-bold mb-3 font-display">Talent Burnout</h3>
-                <p className="text-brand-gray text-sm leading-relaxed">
-                  คนเก่งแบกงานจนหมดพลัง มอดไหม้ไปกับระบบจับผิด และเงียบถอดจิตรอลาออกเงียบๆ
-                </p>
-              </div>
-
-            </div>
-
-            {/* Overlap Statement Card */}
-            <div className="relative bg-brand-white rounded-lg p-10 md:p-12 text-center border border-brand-pink/20 max-w-4xl mx-auto shadow-md mt-24">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-pink/5 rounded-full blur-[80px] pointer-events-none"></div>
-              
-              <h3 className="text-2xl sm:text-4xl font-display font-black text-brand-black mb-6 leading-tight">
-                “สิ่งที่น่ากลัวที่สุดไม่ใช่คนลาออก <br className="hidden sm:inline" />
-                แต่คือ... <span className="text-brand-pink">คนยังอยู่ แต่ใจไม่ได้อยู่กับองค์กรแล้ว</span>”
-              </h3>
-              <p className="text-brand-gray max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
-                การฟื้นฟูสภาวะนี้ไม่ใช่อัดชุดวิชาการธรรมดากลบปัญหา แต่คือการพาพวกเขากลับมารู้สึกตัว เชื่อมต่อกับคนรอบข้าง และเกิดความหมายในการสร้างสรรค์ใหม่อีกครั้ง
+            {/* Core Truth Card */}
+            <div className="w-full max-w-3xl p-6 sm:p-8 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 text-center shadow-2xl mb-10">
+              <p className="text-base sm:text-xl font-medium text-white/90 leading-relaxed">
+                เพราะองค์กรที่แข็งแรง <br className="hidden sm:inline" />
+                ไม่ได้เกิดจากการมี <strong className="text-white">“คนเก่ง”</strong> เยอะที่สุด
               </p>
-            </div>
-
-          </div>
-        </section>
-
-
-        {/* SECTION 4: BRAND BELIEF */}
-        <section id="belief" className="py-24 px-6 relative bg-brand-purple text-brand-white">
-          <div className="max-w-5xl mx-auto">
-            
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
               
-              <div className="lg:col-span-5 space-y-6">
-                <span className="text-brand-yellow text-xs font-bold tracking-widest uppercase block font-display">02 — เราเชื่อว่า...</span>
-                <h2 className="text-3xl sm:text-5xl font-sans font-extrabold leading-tight">
-                  องค์กรจะมีชีวิตได้ <br />
-                  เมื่อคนข้างใน <br />
-                  <span className="text-brand-yellow relative">
-                    มีชีวิต
-                    <span className="absolute left-0 bottom-1 w-full h-1 bg-brand-yellow/30 rounded"></span>
-                  </span>
-                </h2>
-                <p className="text-brand-surface leading-relaxed text-sm sm:text-base">
-                  องค์กรไม่สามารถเปลี่ยนได้อย่างยั่งยืนด้วยการเปลี่ยนแค่ Strategy, Process หรือ KPI ใหม่ๆ เพราะสุดท้ายแล้ว...
-                </p>
-                <div className="text-xl sm:text-2xl font-display font-black text-brand-yellow">
-                  คนคือคนที่ทำให้องค์กรมีชีวิต
-                </div>
+              <div className="mt-4 pt-4 border-t border-white/15 text-sm sm:text-base text-amber-200 leading-relaxed font-sans">
+                แต่เกิดจากการทำให้คนเก่ง <strong className="text-white">รู้ว่าตัวเองมีคุณค่าอะไร</strong> · <strong className="text-white">สื่อสารกับคนอื่นเป็น</strong> · <strong className="text-white">ทำงานร่วมกันเป็น</strong> · <strong className="text-white">เติบโตเป็นผู้นำ</strong> · และร่วมกันสร้างวัฒนธรรมที่องค์กรเชื่อมั่น
               </div>
-
-              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  { num: "01 / หยุด", title: "Stop", desc: "หยุดการทำงานสภาวะหุ่นยนต์มาส่องดูสภาวะตัวเอง" },
-                  { num: "02 / มองตัวเอง", title: "Reflect", desc: "มองลึกทำความเข้าใจความจริงของความคิดและสภาวะในปัจจุบัน" },
-                  { num: "03 / เชื่อมกับคนอื่น", title: "Connect", desc: "เปิดใจสร้างความเชื่อมโยงที่จริงใจกับคนในทีมงาน" },
-                  { num: "04 / เติมพลัง", title: "Re-energize", desc: "ฟื้นไฟพลังงานความสดใหม่ แรงบันดาลใจในการทำงาน" },
-                  { num: "05 / เห็นความเป็นไปได้ใหม่", title: "Re-frame", desc: "มองเห็นมุมมองแปลกใหม่ในการแก้ไขปัญหาร่วมกัน" },
-                  { num: "06 / กลับไปสร้างสิ่งใหม่", title: "Recreate", desc: "นำทัศนคติที่ดีกลับไปสรรค์สร้างพฤติกรรมในที่ทำงาน" }
-                ].map((item, idx) => (
-                  <div key={idx} className="p-6 rounded-lg bg-brand-white/10 border border-brand-white/10 hover:bg-brand-white/15 transition-all">
-                    <div className="text-brand-yellow font-display font-bold text-sm mb-2">{item.num}</div>
-                    <h4 className="font-bold text-base mb-1 text-brand-white">{item.title}</h4>
-                    <p className="text-brand-surface text-xs leading-relaxed">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-
             </div>
 
-          </div>
-        </section>
-
-
-        {/* SECTION 5: CHOOMCHAM HOUSE คืออะไร? */}
-        <section id="about" className="py-24 px-6 bg-brand-white text-brand-black border-b border-brand-border">
-          <div className="max-w-5xl mx-auto">
-            
-            <div className="text-center mb-16">
-              <span className="text-brand-purple text-xs font-bold tracking-widest uppercase block font-display">03 — CHOOMCHAM HOUSE คืออะไร?</span>
-              <h2 className="text-3xl sm:text-5xl font-sans font-extrabold mb-4 mt-2">
-                บ้านสำหรับการเกิดใหม่ของคนทำงาน
-              </h2>
-              <p className="text-brand-gray text-base sm:text-lg max-w-2xl mx-auto">
-                เราออกแบบประสบการณ์การเรียนรู้และการพัฒนาคน สำหรับองค์กรที่ต้องการให้คน “เปลี่ยนจากข้างใน”
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-              
-              <div className="lg:col-span-5 p-8 rounded-lg bg-brand-surface border border-brand-border">
-                <h4 className="text-lg font-bold mb-4 text-brand-purple font-display">ไม่ใช่แค่กลับไปทำงานเก่งขึ้น...</h4>
-                <p className="text-brand-gray text-sm leading-relaxed mb-6">
-                  แต่เป็นการกลับไปแบบมีพลังชีวิต มีความสัมพันธ์ที่ดีกับคนรอบข้าง และต้องการขับเคลื่อนสิ่งใหม่ร่วมกันอย่างแท้จริง
-                </p>
-                <div className="w-16 h-1 bg-brand-pink rounded-full"></div>
+            {/* Workplace Reality Check (5 Bullets) */}
+            <div className="w-full max-w-4xl text-left mb-10">
+              <div className="text-xs sm:text-sm font-bold tracking-widest text-slate-300 uppercase mb-4 text-center font-display">
+                องค์กรจำนวนมากมีคนเก่งอยู่แล้ว แต่ศักยภาพอาจยังไม่ได้ถูกนำออกมาใช้อย่างเต็มที่:
               </div>
 
-              {/* Qualities list */}
-              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {[
-                  { title: "มีพลังขึ้น", desc: "ปลุกจิตวิญญาณแห่งความตื่นตัว ฟื้นคืนไฟแรงบันดาลใจ" },
-                  { title: "เชื่อมกันมากขึ้น", desc: "สลายกำแพงแผนก คุยกันลึกซึ้งด้วยความเข้าใจ" },
-                  { title: "กล้าคิดมากขึ้น", desc: "สลายความกลัวการล้มเหลว กล้าปลดปล่อยพลังจินตนาการ" },
-                  { title: "กล้าสร้างมากขึ้น", desc: "มีสภาวะผู้เริ่มทำ ลงมือสร้างสรรค์สิ่งใหม่แบบเชิงรุก" },
-                  { title: "อยากมีส่วนร่วมกับองค์กรอีกครั้ง", desc: "เชื่อมโยงความเชื่อมั่นเข้ากับเป้าหมายองค์กร" }
+                  { title: "บางคนเก่ง แต่ไม่กล้าแสดงออก", desc: "ขาดพื้นที่ปลอดภัยและขาดความมั่นใจในคุณค่าของตนเอง" },
+                  { title: "บางคนเก่ง แต่สื่อสารไม่เป็น", desc: "สิ่งที่คิดไม่สามารถส่งไปถึงเพื่อนร่วมงานหรือทีมได้อย่างมีพลัง" },
+                  { title: "บางทีมมีคนเก่งหลายคน แต่ทำงานร่วมกันไม่ได้", desc: "ต่างคนต่างทำจนเกิดกำแพง Silo และขาดเป้าหมายร่วม" },
+                  { title: "บางคนขึ้นเป็นหัวหน้า แต่ยังไม่รู้ว่าจะ “นำคน” อย่างไร", desc: "เก่งงานแต่ยังขาดทักษะการสร้างแรงบันดาลใจและบริหารใจทีม" },
+                  { title: "บางองค์กรมี Vision ที่ดี แต่คนข้างในไม่ได้ใช้ชีวิตไปกับมันจริง ๆ", desc: "ค่านิยมอยู่แค่บนผนังแต่ไม่ปรากฏในพฤติกรรมการทำงานทุกวัน" }
                 ].map((item, idx) => (
                   <div 
                     key={idx} 
-                    className={`p-6 rounded-lg bg-brand-surface border border-brand-border hover:border-brand-purple/20 transition-all ${
-                      idx === 4 ? "sm:col-span-2" : ""
-                    }`}
+                    className={`p-4 sm:p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 hover:border-brand-pink/50 transition-all duration-300 ${idx === 4 ? "sm:col-span-2 lg:col-span-1" : ""}`}
                   >
-                    <h4 className="font-display font-bold text-lg text-brand-purple mb-1.5 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-brand-pink" /> {item.title}
-                    </h4>
-                    <p className="text-brand-gray text-xs sm:text-sm leading-relaxed">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-
-            </div>
-
-          </div>
-        </section>
-
-
-        {/* SECTION 6: OUR TRANSFORMATION (ZOMBIE -> ALIVE SLIDER) */}
-        <section id="model" className="py-24 px-6 bg-brand-white text-brand-black border-b border-brand-border relative overflow-hidden">
-          <div className="max-w-6xl mx-auto">
-            
-            <div className="text-center mb-16">
-              <span className="text-brand-pink text-xs font-bold tracking-widest uppercase block font-display">04 — OUR TRANSFORMATION</span>
-              <h2 className="text-3xl sm:text-5xl font-sans font-extrabold mb-4 mt-2">
-                จาก Zombie → Alive
-              </h2>
-              <p className="text-brand-gray text-sm sm:text-base max-w-2xl mx-auto">
-                โมเดลการเรียนรู้เปลี่ยนผ่านระดับพลังงานขององค์กรคุณ
-              </p>
-            </div>
-
-            {/* Slider container grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-              
-              {/* Graphic side */}
-              <div className="lg:col-span-6 flex flex-col items-center">
-                
-                <div className="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center rounded-full bg-brand-surface border border-brand-border shadow-inner">
-                  
-                  {/* Dynamic Backdrop Glow based on Step */}
-                  <div className={`absolute inset-0 rounded-full blur-[45px] opacity-25 transition-all duration-1000 ${
-                    transStep === 0 ? "bg-brand-gray" :
-                    transStep === 1 ? "bg-brand-purple" :
-                    transStep === 2 ? "bg-brand-pink" :
-                    transStep === 3 ? "bg-brand-yellow" : "bg-brand-green"
-                  }`}></div>
-
-                  {/* Transforming Center Orb */}
-                  <div className={`relative w-44 h-44 rounded-full border flex flex-col items-center justify-center text-center p-5 transition-all duration-1000 shadow-lg ${
-                    transStep === 0 ? "border-brand-gray/30 bg-brand-white text-brand-gray" :
-                    transStep === 1 ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple glow-purple" :
-                    transStep === 2 ? "border-brand-pink/30 bg-brand-pink/10 text-brand-pink glow-pink" :
-                    transStep === 3 ? "border-brand-yellow/30 bg-brand-yellow/10 text-brand-yellow glow-amber" :
-                    "border-brand-green/30 bg-brand-green/10 text-brand-green glow-green"
-                  }`}>
-                    
-                    <div className="absolute -inset-1 border border-dashed rounded-full animate-spin" style={{ animationDuration: '24s' }}></div>
-
-                    <span className="text-[9px] uppercase font-bold tracking-widest opacity-60 font-display">Journey Stage</span>
-                    <span className="text-lg md:text-xl font-display font-black tracking-wider mt-1.5 uppercase">
-                      {TRANSFORMATION_STEPS[transStep].title}
-                    </span>
-                    <span className="text-xs font-semibold mt-1">
-                      {TRANSFORMATION_STEPS[transStep].subtitle}
-                    </span>
-                    
-                  </div>
-
-                </div>
-
-                {/* Bullets control */}
-                <div className="flex gap-3 mt-8">
-                  {TRANSFORMATION_STEPS.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setTransStep(i)}
-                      className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
-                        transStep === i 
-                          ? "bg-brand-pink scale-125 w-8" 
-                          : "bg-brand-gray/30 hover:bg-brand-gray/70"
-                      }`}
-                    ></button>
-                  ))}
-                </div>
-
-              </div>
-
-              {/* Steps control column */}
-              <div className="lg:col-span-6 space-y-4">
-                {TRANSFORMATION_STEPS.map((step, idx) => (
-                  <button
-                    key={step.id}
-                    onClick={() => setTransStep(idx)}
-                    className={`w-full text-left p-5 rounded-lg border transition-all duration-500 block ${
-                      transStep === idx 
-                        ? "border-brand-pink bg-brand-pink/5 shadow-md translate-x-2" 
-                        : "border-brand-border hover:border-brand-border/15 bg-brand-white hover:bg-brand-surface"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold font-display ${
-                        transStep === idx 
-                          ? "bg-brand-pink text-brand-white" 
-                          : "bg-brand-surface border border-brand-border text-brand-gray"
-                      }`}>
-                        {idx + 1}
-                      </span>
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-2 h-2 rounded-full bg-brand-pink shrink-0 mt-1.5"></div>
                       <div>
-                        <h4 className={`text-base font-display font-black tracking-wider ${
-                          transStep === idx ? "text-brand-pink" : "text-brand-black"
-                        }`}>
-                          {step.title}
-                        </h4>
-                        <span className="text-xs text-brand-gray font-semibold">{step.subtitle}</span>
+                        <h2 className="font-bold text-sm text-white leading-snug mb-1 font-display">
+                          {item.title}
+                        </h2>
+                        <p className="text-xs text-white/70 leading-relaxed">
+                          {item.desc}
+                        </p>
                       </div>
                     </div>
-                    {transStep === idx && (
-                      <p className="mt-3 text-brand-gray text-xs sm:text-sm leading-relaxed animate-fade-in pl-11">
-                        {step.desc}
-                      </p>
-                    )}
-                  </button>
+                  </div>
                 ))}
               </div>
-
             </div>
 
-            {/* Rebirth Output block */}
-            <div className="mt-16 p-8 rounded-lg bg-brand-surface border border-brand-border text-center text-lg md:text-xl font-bold font-display">
-              คนมีชีวิต <span className="text-brand-pink font-semibold">→</span> ทีมมีพลัง <span className="text-brand-purple font-semibold">→</span> องค์กรมีชีวิต <span className="text-brand-green font-semibold">Living Organization</span>
+            {/* Transition Statement */}
+            <div className="w-full max-w-3xl p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-brand-pink/30 via-purple-600/30 to-brand-yellow/20 border border-white/20 backdrop-blur-xl shadow-xl text-center">
+              <p className="text-sm sm:text-base font-semibold text-white/90 mb-2">
+                ชุ่มฉ่ำจึงออกแบบหลักสูตร <strong className="text-amber-300 font-bold">“องค์กรตัวจริง™”</strong>
+              </p>
+              <div className="text-lg sm:text-2xl font-black text-white font-sans">
+                เพื่อพัฒนาคนจาก <span className="text-brand-yellow">“ข้างใน”</span> ไปสู่การเปลี่ยนแปลงระดับ <span className="text-brand-pink">“องค์กร”</span>
+              </div>
+              <div className="text-xs sm:text-sm font-bold text-slate-300 mt-2 font-display uppercase tracking-wider">
+                ผ่าน 5 ระดับการเติบโต (5 Levels of Growth)
+              </div>
+            </div>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-center gap-3.5 mt-8 w-full sm:w-auto">
+              <a 
+                href="#zombie-check" 
+                className="w-full sm:w-auto px-8 py-4 rounded-pill bg-gradient-to-r from-brand-pink to-rose-600 text-white font-display font-bold text-base shadow-xl shadow-brand-pink/30 hover:shadow-brand-pink/50 hover:scale-102 transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <span>🧟 ทำแบบประเมิน Zombie Check™ (ฟรี)</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+              <a 
+                href="#programs" 
+                className="w-full sm:w-auto px-6 py-4 rounded-pill bg-white/15 hover:bg-white/25 border border-white/25 text-white font-display font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                <span>หลักสูตร & 5 ระดับการเติบโต</span>
+                <ChevronRight className="w-4 h-4 text-slate-300" />
+              </a>
+              <a 
+                href="#contact" 
+                className="w-full sm:w-auto px-6 py-4 rounded-pill bg-white text-brand-purple hover:bg-slate-100 font-display font-bold text-sm shadow-md transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <span>ปรึกษาโจทย์องค์กร</span>
+              </a>
             </div>
 
           </div>
         </section>
 
-
-        {/* SECTION 7: PROGRAMS & SYMPTOM RECOMMENDATION */}
-        <section id="programs" className="py-24 px-6 bg-brand-surface border-b border-brand-border relative">
-          <div className="max-w-6xl mx-auto">
+        {/* ========================================================
+            SECTION 2: 5 LEVELS TO AUTHENTIC ORGANIZATION (DEEP DIVE)
+        ======================================================== */}
+        <section id="levels" className="py-20 lg:py-28 px-6 bg-brand-white relative">
+          <div className="max-w-5xl mx-auto">
             
-            <div className="text-center mb-16">
-              <span className="text-brand-purple text-xs font-bold tracking-widest uppercase block mb-3 font-display">05 — PROGRAMS</span>
-              <h2 className="text-3xl sm:text-5xl font-sans font-extrabold mb-4 mt-2">
-                โปรแกรมปรับแต่งพัฒนาองค์กร
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <span className="text-xs font-bold uppercase tracking-widest text-brand-purple mb-2 block font-display">
+                5 LEVELS OF GROWTH
+              </span>
+              <h2 className="text-3xl sm:text-5xl font-extrabold text-brand-black tracking-tight mb-4 font-sans">
+                5 ระดับ สู่ “องค์กรตัวจริง”
               </h2>
-              <p className="text-brand-gray text-sm sm:text-base max-w-2xl mx-auto">
-                เลือกโปรแกรมที่เหมาะสมกับสภาวะปัญหา หรือคัดกรองตามอาการที่พบบ่อยด้านล่างนี้
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
+                จากเข้าใจตัวเอง สื่อสารเป็น สร้างทีมเป็น นำคนเป็น จนกลายเป็นวัฒนธรรมองค์กรที่มั่นคง
               </p>
             </div>
 
-            {/* Symptom Checker */}
-            <div className="bg-brand-white border border-brand-border rounded-lg p-6 md:p-8 mb-16 text-center shadow-sm">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-brand-purple mb-4 font-display">🔍 เลือกสภาวะที่พบบ่อยในองค์กรคุณตอนนี้:</h4>
-              <div className="flex flex-wrap justify-center gap-3">
-                {SYMPTOMS.map((symptom) => (
-                  <button
-                    key={symptom.id}
-                    onClick={() => setSelectedSymptom(selectedSymptom === symptom.id ? null : symptom.id)}
-                    className={`px-4 py-2.5 rounded-pill border text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer ${
-                      selectedSymptom === symptom.id
-                        ? "bg-brand-pink border-brand-pink text-brand-white glow-pink scale-105"
-                        : "border-brand-border hover:border-brand-pink/50 bg-brand-white hover:bg-brand-surface text-brand-gray hover:text-brand-black"
-                    }`}
-                  >
-                    {symptom.label}
-                  </button>
-                ))}
-              </div>
-              
-              {selectedSymptom && (
-                <div className="mt-5 text-sm text-brand-black flex items-center justify-center gap-2 animate-bounce">
-                  <Check className="w-4 h-4 text-brand-green" />
-                  <span>แนะนำให้เลือกโปรแกรม:</span>
-                  <a 
-                    href={`#prog-${SYMPTOMS.find(s => s.id === selectedSymptom)?.programId}`}
-                    className="text-brand-pink font-bold hover:underline"
-                  >
-                    {SYMPTOMS.find(s => s.id === selectedSymptom)?.programName}
-                  </a>
-                </div>
-              )}
-            </div>
-
-            {/* Programs Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {PROGRAMS.map((prog) => {
-                const isRecommended = selectedSymptom && SYMPTOMS.find(s => s.id === selectedSymptom)?.programId === prog.id;
+            {/* 5 Levels Cards */}
+            <div className="space-y-6">
+              {AUTHENTIC_LEVELS.map((lvl) => {
+                const IconComponent = lvl.icon;
                 return (
-                  <div
-                    key={prog.id}
-                    id={`prog-${prog.id}`}
-                    className={`rounded-lg p-8 md:p-10 border transition-all duration-500 relative flex flex-col justify-between ${
-                      isRecommended 
-                        ? "border-brand-pink bg-brand-pink/5 shadow-md scale-[1.01]" 
-                        : "border-brand-border bg-brand-white hover:border-brand-gray/30"
-                    }`}
+                  <div 
+                    key={lvl.code}
+                    className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/90 hover:border-brand-purple/40 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row gap-6 md:gap-8 items-start relative overflow-hidden group"
                   >
-                    {isRecommended && (
-                      <span className="absolute -top-3.5 right-6 px-3 py-1 rounded-pill bg-brand-pink text-brand-white text-xs font-bold tracking-wider uppercase font-display glow-pink">
-                        Recommended
+                    {/* Left Step Indicator */}
+                    <div className="shrink-0 flex md:flex-col items-center gap-3">
+                      <span className="text-xs font-black uppercase tracking-wider text-slate-400 font-display group-hover:text-brand-purple transition-colors">
+                        {lvl.levelNumber}
                       </span>
-                    )}
-
-                    <div>
-                      <div className="flex flex-wrap gap-2 mb-6">
-                        {prog.tags.map((t, idx) => (
-                          <span key={idx} className="px-2.5 py-1 rounded-md bg-brand-surface text-brand-gray text-[10px] uppercase font-bold tracking-wider font-display">
-                            {t}
-                          </span>
-                        ))}
+                      <div className={`p-3.5 rounded-2xl bg-gradient-to-br ${lvl.color} text-white shadow-md`}>
+                        <IconComponent className="w-6 h-6" />
                       </div>
-
-                      <h3 className="text-2xl font-display font-extrabold text-brand-purple mb-2">{prog.title}</h3>
-                      <h4 className="text-lg font-bold text-brand-black mb-4">{prog.subtitle}</h4>
-                      <p className="text-brand-gray text-sm leading-relaxed mb-6 border-b border-brand-border pb-6">
-                        {prog.description}
-                      </p>
-
-                      <ul className="space-y-2.5 mb-8">
-                        {prog.highlights.map((h, idx) => (
-                          <li key={idx} className="text-xs sm:text-sm text-brand-gray flex items-start gap-2.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand-pink mt-1.5 shrink-0 animate-pulse"></span>
-                            <span>{h}</span>
-                          </li>
-                        ))}
-                      </ul>
                     </div>
 
-                    <a
-                      href="#contact"
-                      className="w-full py-3.5 rounded-pill border border-brand-border hover:border-brand-pink bg-brand-white hover:bg-brand-surface text-center text-sm font-bold tracking-wider hover:text-brand-pink transition-all duration-300 font-display"
-                    >
-                      ออกแบบโปรแกรมสำหรับองค์กรคุณ
-                    </a>
+                    {/* Content */}
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-2.5 mb-2">
+                        <span className={`text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md border font-display ${lvl.badge}`}>
+                          {lvl.code}
+                        </span>
+                        <span className="text-xs text-slate-500 font-medium font-display">
+                          {lvl.title}
+                        </span>
+                      </div>
+
+                      <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2 font-display">
+                        {lvl.title}
+                      </h3>
+
+                      <p className="text-sm sm:text-base font-semibold text-brand-purple mb-2">
+                        {lvl.hook}
+                      </p>
+
+                      <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                        {lvl.summary}
+                      </p>
+
+                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 mb-3">
+                        <p className="text-xs sm:text-sm font-bold text-slate-800 italic">
+                          {lvl.quote}
+                        </p>
+                      </div>
+
+                      <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>{lvl.benefit}</span>
+                      </p>
+                    </div>
                   </div>
                 );
               })}
@@ -1231,452 +1064,1023 @@ export default function Home() {
           </div>
         </section>
 
-
-        {/* SECTION 8: เราไม่ได้ทำ Training แบบเดิม */}
-        <section className="py-24 px-6 bg-brand-white text-brand-black border-b border-brand-border relative">
-          <div className="max-w-5xl mx-auto">
+        {/* ========================================================
+            SECTION 3: THE FLOW & PHILOSOPHY (CULTURE FROM REAL PEOPLE)
+        ======================================================== */}
+        <section className="py-20 px-6 bg-gradient-to-b from-brand-surface to-white border-y border-brand-border/60 relative">
+          <div className="max-w-4xl mx-auto text-center">
             
-            <div className="text-center mb-16">
-              <span className="text-brand-pink text-xs font-bold tracking-widest uppercase block mb-3 font-display">06 — เราไม่ได้ทำ Training แบบเดิม</span>
-              <h2 className="text-3xl sm:text-5xl font-sans font-extrabold mb-6 leading-tight mt-2">
-                เพราะคนไม่ได้เปลี่ยนเพราะ “ฟังเก่งขึ้น”
-              </h2>
-              <p className="text-brand-gray text-base sm:text-lg max-w-2xl mx-auto">
-                คนเปลี่ยนเมื่อเขารู้สึก เห็น เข้าใจ และเกิดการตัดสินใจนำไปลงมือทำด้วยตนเอง
-              </p>
+            <span className="text-xs font-bold uppercase tracking-widest text-brand-pink mb-2 block font-display">
+              ORGANIZATIONAL TRANSFORMATION FLOW
+            </span>
+
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-brand-black mb-6 font-sans">
+              การเดินทางจาก “คน” สู่ “วัฒนธรรม”
+            </h2>
+
+            {/* Step Ladder */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-white border border-brand-purple/15 shadow-md mb-8">
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs sm:text-sm font-bold font-display text-slate-800">
+                <span className="px-3.5 py-1.5 rounded-xl bg-purple-50 text-brand-purple border border-purple-100">PERSON</span>
+                <span className="text-slate-400">↓</span>
+                <span className="px-3.5 py-1.5 rounded-xl bg-pink-50 text-brand-pink border border-pink-100">COMMUNICATION</span>
+                <span className="text-slate-400">↓</span>
+                <span className="px-3.5 py-1.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-100">TEAM</span>
+                <span className="text-slate-400">↓</span>
+                <span className="px-3.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100">LEADER</span>
+                <span className="text-slate-400">↓</span>
+                <span className="px-3.5 py-1.5 rounded-xl bg-blue-50 text-brand-blue border border-blue-100">CULTURE</span>
+              </div>
+              
+              <div className="mt-6 pt-6 border-t border-slate-100 text-base sm:text-xl font-bold text-slate-900 leading-relaxed font-sans">
+                “เพราะ Culture ที่แข็งแรง ไม่ได้ถูกสร้างจากคำประกาศขององค์กร <br className="hidden sm:inline" />
+                แต่ถูกสร้างจาก <span className="text-brand-pink">“คนจริง ๆ”</span> ที่อยู่ในองค์กรทุกวัน”
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-12">
-              <div className="space-y-6">
-                <p className="text-brand-gray text-sm sm:text-base leading-relaxed">
-                  พนักงานจะเกิดการมีส่วนร่วมและตกผลึกจนเปลี่ยนสภาวะในที่ทำงานได้จริง ต้องผ่าน 4 จุดสัมผัสความรู้สึก:
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
-                  <div className="p-4.5 rounded-md bg-brand-surface border border-brand-border">
-                    <span className="text-brand-pink font-display font-bold text-base block mb-1">รู้สึกบางอย่าง</span>
-                    <span className="text-brand-gray text-xs">เกิดความเข้าใจและอารมณ์ร่วมภายใน</span>
-                  </div>
-                  <div className="p-4.5 rounded-md bg-brand-surface border border-brand-border">
-                    <span className="text-brand-yellow font-display font-bold text-base block mb-1">เห็นบางอย่าง</span>
-                    <span className="text-brand-gray text-xs">มองเห็นความผิดปกติและทางออกในสภาวะจริง</span>
-                  </div>
-                  <div className="p-4.5 rounded-md bg-brand-surface border border-brand-border">
-                    <span className="text-brand-blue font-display font-bold text-base block mb-1">เข้าใจบางอย่าง</span>
-                    <span className="text-brand-gray text-xs">เข้าใจความหมายในภาพใหญ่และการประสาน</span>
-                  </div>
-                  <div className="p-4.5 rounded-md bg-brand-pink/5 border border-brand-pink/20 text-brand-pink">
-                    <span className="font-display font-bold text-base block mb-1">ตัดสินใจทำบางอย่าง</span>
-                    <span className="text-xs">ลงมือเปลี่ยนพฤติกรรมด้วยพลังสมัครใจ</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Choomcham formula box */}
-              <div className="p-8 rounded-lg bg-brand-surface border border-brand-border relative overflow-hidden shadow-sm">
-                <div className="absolute top-0 right-0 w-48 h-48 bg-brand-pink/5 rounded-full blur-[80px] pointer-events-none"></div>
-                <h4 className="text-sm font-bold uppercase tracking-wider text-brand-purple mb-6 font-display">⚡ Choomcham Learning Framework:</h4>
-                <div className="space-y-4 text-xs sm:text-sm font-semibold">
-                  <div className="p-3 bg-brand-white rounded-md border border-brand-border flex items-center justify-between">
-                    <span>Learning + Experience</span>
-                    <span className="text-brand-pink font-bold">+</span>
-                  </div>
-                  <div className="p-3 bg-brand-white rounded-md border border-brand-border flex items-center justify-between">
-                    <span>Reflection + Connection</span>
-                    <span className="text-brand-yellow font-bold">+</span>
-                  </div>
-                  <div className="p-3 bg-brand-green/10 rounded-md border border-brand-green/20 text-brand-green flex items-center justify-between">
-                    <span>Action (ลงมือจริง)</span>
-                    <span className="font-bold">= Reborn</span>
-                  </div>
-                </div>
-                <p className="text-brand-gray text-xs leading-relaxed mt-6">
-                  *เพื่อสร้างความเปลี่ยนแปลงที่ยังอยู่กับทีมงานหลังจบการอบรม ไม่หายไปเมื่อเดินออกจากห้องเรียน
-                </p>
+            {/* Authentic Meaning Card */}
+            <div className="p-8 sm:p-10 rounded-3xl bg-slate-900 text-white shadow-xl text-center">
+              <span className="text-xs font-bold uppercase tracking-widest text-brand-yellow font-display block mb-2">
+                OUR PROMISE
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-extrabold mb-4 font-display">
+                องค์กรตัวจริง™
+              </h3>
+              <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto mb-6">
+                เราไม่ได้เข้าไปเปลี่ยนคนให้กลายเป็นคนอีกแบบหนึ่ง <br className="hidden sm:inline" />
+                แต่ช่วยให้แต่ละคน <strong>ค้นพบตัวจริงที่ดีที่สุดของตัวเอง</strong> <br className="hidden sm:inline" />
+                และสร้างองค์กรที่ตัวจริงเหล่านั้นสามารถ <strong>เติบโตไปด้วยกันได้</strong>
+              </p>
+              
+              <div className="inline-block px-6 py-2 rounded-full bg-white/10 border border-white/20 text-brand-pink font-display font-bold text-sm tracking-wider uppercase">
+                CHOOMCHAM BRANDING · “ตัวจริงต้องมีที่ยืน”
               </div>
             </div>
 
           </div>
         </section>
 
-
-        {/* SECTION 9: เหมาะกับองค์กรที่... */}
-        <section className="py-24 px-6 bg-brand-white text-brand-black border-b border-brand-border relative">
+        {/* ========================================================
+            SECTION 4: TRUSTED EXPERIENCE & CASE STUDIES
+        ======================================================== */}
+        <section id="experience" className="py-20 px-6 bg-white border-b border-brand-border/60 relative">
           <div className="max-w-5xl mx-auto">
             
-            <div className="text-center mb-16">
-              <span className="text-brand-green text-xs font-bold tracking-widest uppercase block mb-3 font-display">07 — เหมาะกับองค์กรที่...</span>
-              <h2 className="text-3xl sm:text-5xl font-sans font-extrabold mb-4 mt-2">
-                เหมาะกับองค์กรที่กำลังต้องการ...
+            <div className="text-center max-w-3xl mx-auto mb-12">
+              <span className="text-xs font-bold uppercase tracking-widest text-brand-pink mb-2 block font-display">
+                TRUSTED EXPERIENCE
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-brand-black mb-4 font-sans">
+                ประสบการณ์ที่ได้รับความไว้วางใจ
               </h2>
+              <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+                ประสบการณ์ด้านการอบรม การพัฒนาคน การสื่อสาร และการสร้างแบรนด์ ให้กับองค์กรและแบรนด์ชั้นนำ
+              </p>
             </div>
 
-            {/* Target grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
-                "คนกำลังหมดไฟ",
-                "ทีมเริ่มเฉื่อย",
-                "อยากสร้างวัฒนธรรมใหม่",
-                "กำลังเปลี่ยนแปลงองค์กร",
-                "ต้องการพัฒนาผู้นำ",
-                "ต้องการสร้างทีมที่เชื่อมกันมากขึ้น",
-                "ต้องการปลุก Creativity และ Innovation",
-                "ต้องการสร้าง Employee Experience ที่มีความหมาย",
-                "ต้องการให้คนกลับมา “อยากมีส่วนร่วม” กับองค์กร"
-              ].map((item, idx) => (
-                <div key={idx} className="p-5 rounded-md bg-brand-surface border border-brand-border hover:border-brand-green/30 transition-all flex items-center gap-3">
-                  <span className="w-2.5 h-2.5 rounded-full bg-brand-green glow-green"></span>
-                  <span className="text-sm font-semibold text-brand-gray">{item}</span>
+            {/* Selected Case Cards (Madame Fin & Gangnam Clinic) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+              {CASE_STUDIES.map((c, i) => (
+                <div 
+                  key={i} 
+                  className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-slate-50 to-purple-50/40 border border-purple-100 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-3 mb-4">
+                      <span className="text-xs font-bold uppercase tracking-wider text-brand-purple bg-purple-100/80 px-3 py-1 rounded-full font-display">
+                        {c.tag}
+                      </span>
+                      <Award className="w-5 h-5 text-amber-500 shrink-0" />
+                    </div>
+                    
+                    <h3 className="text-xl font-bold text-slate-900 mb-3 font-display">
+                      {c.client}
+                    </h3>
+
+                    <div className="space-y-2 mb-6 text-xs sm:text-sm">
+                      <div className="flex items-start gap-2 text-slate-500">
+                        <span className="font-bold text-slate-400 shrink-0">ก่อน:</span>
+                        <span>{c.before}</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-emerald-800 font-medium bg-emerald-50/80 p-2.5 rounded-xl border border-emerald-100">
+                        <span className="font-bold text-emerald-600 shrink-0">ผลลัพธ์:</span>
+                        <span>{c.after}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-xs sm:text-sm italic text-slate-600 border-l-2 border-brand-pink pl-3 py-0.5">
+                    {c.quote}
+                  </p>
                 </div>
               ))}
             </div>
 
+            {/* Workshop Gallery */}
+            <div className="mb-14">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-brand-purple" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700 font-display">
+                    ภาพบรรยากาศการอบรมและการเรียนรู้จริง (Workshop Gallery)
+                  </span>
+                </div>
+                <span className="text-xs text-slate-500 hidden sm:inline">คลิกเพื่อดูภาพขยาย</span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {WORKSHOP_GALLERY_IMAGES.map((img, idx) => (
+                  <div 
+                    key={img.id}
+                    onClick={() => setLightboxIndex(idx)}
+                    className="group relative aspect-4/3 rounded-2xl overflow-hidden bg-slate-100 cursor-pointer shadow-xs hover:shadow-md border border-slate-200 transition-all duration-300"
+                  >
+                    <img 
+                      src={img.url} 
+                      alt={img.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-2 flex flex-col justify-end text-white">
+                      <span className="text-[10px] font-bold text-amber-300 font-display">{img.category}</span>
+                      <p className="text-[10px] line-clamp-1 leading-tight">{img.title}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* The Core Belief Quote Box */}
+            <div className="p-8 sm:p-10 rounded-3xl bg-brand-purple text-white text-center relative overflow-hidden shadow-xl">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-pink/20 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-yellow/15 rounded-full blur-3xl pointer-events-none"></div>
+
+              <span className="text-xs font-bold uppercase tracking-widest text-brand-yellow mb-3 block font-display">
+                OUR CORE BELIEF
+              </span>
+
+              <blockquote className="text-lg sm:text-2xl font-bold leading-relaxed max-w-3xl mx-auto font-sans">
+                “เพราะเราเชื่อว่า องค์กรจะสื่อสารออกไปข้างนอกได้ดี <br className="hidden sm:inline" />
+                เมื่อ <span className="text-brand-yellow">“คนข้างใน”</span> เข้าใจตัวเอง เข้าใจกัน <br className="hidden sm:inline" />
+                และเข้าใจสิ่งที่องค์กรกำลังสร้าง”
+              </blockquote>
+            </div>
+
           </div>
         </section>
 
-
-        {/* SECTION 10: WHAT WE CREATE */}
-        <section className="py-24 px-6 bg-brand-white text-brand-black border-b border-brand-border relative">
-          <div className="max-w-4xl mx-auto text-center">
+        {/* ========================================================
+            SECTION 5: NOT ONE-SIZE-FITS-ALL (ไม่ใช่หลักสูตรสำเร็จรูป)
+        ======================================================== */}
+        <section id="programs" className="py-20 lg:py-28 px-6 bg-brand-surface relative">
+          <div className="max-w-5xl mx-auto">
             
-            <span className="text-brand-blue text-xs font-bold tracking-widest uppercase block mb-3 font-display">08 — WHAT WE CREATE</span>
-            <h2 className="text-3xl sm:text-5xl font-sans font-extrabold mb-6 mt-2">
-              ไม่ใช่แค่ “วันอบรมที่สนุก”
-            </h2>
-            <p className="text-brand-gray text-base sm:text-lg max-w-2xl mx-auto mb-16">
-              แต่คือการสร้างกระบวนการต่อเนื่องส่งมอบคุณค่าที่แท้จริง
-            </p>
+            <div className="text-center max-w-3xl mx-auto mb-14">
+              <span className="text-xs font-bold uppercase tracking-widest text-brand-purple mb-2 block font-display">
+                TAILORED FOR YOUR ORGANIZATION
+              </span>
+              <h2 className="text-3xl sm:text-5xl font-extrabold text-brand-black tracking-tight mb-4 font-sans">
+                ไม่ใช่หลักสูตรสำเร็จรูป
+              </h2>
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
+                เพราะแต่ละองค์กรมี “คน” และ “โจทย์” ไม่เหมือนกัน ทีมชุ่มฉ่ำจะร่วมทำความเข้าใจบริบทจริงก่อนออกแบบ Learning Journey
+              </p>
+            </div>
 
-            {/* Connection chain */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative">
-              <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-pink via-brand-purple to-brand-green opacity-20 -translate-y-1/2 hidden md:block"></div>
+            {/* Assessment Steps Before Program Design */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-slate-900 text-white mb-14 shadow-xl">
+              <h3 className="text-base sm:text-lg font-bold text-amber-300 mb-4 font-display flex items-center gap-2">
+                <Target className="w-5 h-5" />
+                ก่อนเริ่มโปรแกรม ทีมชุ่มฉ่ำจะร่วมทำความเข้าใจ 5 มิติหลัก:
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 text-xs sm:text-sm">
+                {[
+                  { title: "ปัญหาที่กำลังเจอ", desc: "Pain Points แท้จริงที่ซ่อนอยู่" },
+                  { title: "เป้าหมายผู้บริหาร", desc: "ทิศทางและสิ่งที่คาดหวังจากธุรกิจ" },
+                  { title: "กลุ่มผู้เข้าอบรม", desc: "ระดับ ความพร้อม และ Mindset" },
+                  { title: "วัฒนธรรมองค์กร", desc: "บริบทและวิถีการทำงานเดิม" },
+                  { title: "ผลลัพธ์ที่ต้องการ", desc: "พฤติกรรมใหม่ที่อยากเห็นจริง" }
+                ].map((step, i) => (
+                  <div key={i} className="p-4 rounded-2xl bg-white/10 border border-white/10">
+                    <span className="text-brand-pink font-bold block mb-1 font-display">0{i+1}</span>
+                    <h4 className="font-bold text-white mb-1">{step.title}</h4>
+                    <p className="text-slate-400 text-xs">{step.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-              {[
-                { title: "คนที่มีพลัง", color: "border-brand-pink text-brand-pink bg-brand-pink/5", glow: "glow-pink" },
-                { title: "ทีมที่มี Connection", color: "border-brand-purple text-brand-purple bg-brand-purple/5", glow: "glow-purple" },
-                { title: "วัฒนธรรมที่มีชีวิต", color: "border-brand-yellow text-brand-yellow bg-brand-yellow/5", glow: "glow-amber" },
-                { title: "องค์กรที่คนอยากเติบโตไปด้วยกัน", color: "border-brand-green text-brand-green bg-brand-green/5", glow: "glow-green" }
-              ].map((step, idx) => (
+            {/* FLAGSHIP COURSE: FROM ZOMBIE TO LIVING ORGANIZATION */}
+            <div className="mb-16">
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pink-100 text-brand-pink text-xs font-bold uppercase tracking-wider mb-2 font-display">
+                  <span>🧟 ➔ ✨</span>
+                  <span>FLAGSHIP TRANSFORMATION PROGRAM</span>
+                </div>
+                <h3 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight font-sans">
+                  From Zombie to Living Organization
+                </h3>
+                <p className="text-sm sm:text-base text-slate-600 mt-2 max-w-2xl mx-auto">
+                  หลักสูตรเรือธงในการชุบชีวิตคน ทีม และองค์กร เปลี่ยนภาวะหมดไฟเฉื่อยชา สู่องค์กรตัวจริงที่มีพลังสร้างสรรค์
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[
+                  {
+                    moduleNumber: "MODULE 01",
+                    title: "REBORN PEOPLE",
+                    thaiTitle: "ปลุกคนหมดไฟ & ซอมบี้ในที่ทำงาน",
+                    target: "เหมาะสำหรับพนักงานและทีมงานทุกระดับที่เริ่มหมดพลัง",
+                    desc: "ค้นหาคุณค่า จุดแข็ง และเป้าหมายการทำงานใหม่ เปลี่ยนจากทำงานตามสั่งแบบหุ่นยนต์ สู่ความรู้สึกเป็นเจ้าของงาน (Ownership) และมีไฟในการสร้างผลงาน",
+                    outcomes: ["ฟื้นฟู Passion และความสุขในการทำงาน", "เข้าใจ Brand DNA & Core Values ของตนเอง", "เปลี่ยน Mindset จากเหยื่อสู่ผู้ขับเคลื่อนเชิงรุก"],
+                    badge: "bg-pink-50 text-pink-700 border-pink-200",
+                    accent: "from-pink-500 to-rose-600"
+                  },
+                  {
+                    moduleNumber: "MODULE 02",
+                    title: "ALIVE TEAM",
+                    thaiTitle: "ทลายกำแพง Silo สู่ทีมที่มีชีวิต",
+                    target: "เหมาะสำหรับทีมที่เริ่มเงียบ สื่อสารยาก หรือต่างคนต่างทำ",
+                    desc: "สร้าง Psychological Safety คืนความไว้ใจ (Trust) และปลดล็อกการสื่อสาร ให้ห้องประชุมกลับมามีชีวิต กล้าแลกเปลี่ยนไอเดียใหม่ และผนึกกำลังสู่เป้าหมายร่วม",
+                    outcomes: ["ทลายกำแพงแผนก (Cross-Functional Trust)", "การสื่อสารและ Feedback เชิงสร้างสรรค์", "ความร่วมมือที่มุ่งเน้นผลลัพธ์ขององค์กร"],
+                    badge: "bg-purple-50 text-purple-700 border-purple-200",
+                    accent: "from-brand-purple to-indigo-600"
+                  },
+                  {
+                    moduleNumber: "MODULE 03",
+                    title: "REBORN LEADER",
+                    thaiTitle: "ผู้นำตัวจริงที่ไม่ต้องแบกงานคนเดียว",
+                    target: "เหมาะสำหรับหัวหน้างาน, Team Lead, Manager และผู้บริหารรุ่นใหม่",
+                    desc: "เปลี่ยนจากหัวหน้าแบบไมโครแมนเนจ หรือนักดับเพลิงที่เหนื่อยล้า สู่ผู้นำแบบ Coach ที่สร้างแรงบันดาลใจ ฟังเป็น มอบหมายงานเป็น และดึงศักยภาพทีมออกมาเต็มร้อย",
+                    outcomes: ["ทักษะ Active Listening & Powerful Questioning", "การโค้ชและบริหารพลังงานคนในทีม", "การนำคนโดยไม่ต้องใช้แค่อำนาจตำแหน่ง"],
+                    badge: "bg-amber-50 text-amber-800 border-amber-200",
+                    accent: "from-brand-yellow to-amber-600"
+                  },
+                  {
+                    moduleNumber: "MODULE 04",
+                    title: "LIVING CULTURE",
+                    thaiTitle: "วัฒนธรรมองค์กรตัวจริงที่ยั่งยืน",
+                    target: "เหมาะสำหรับองค์กรที่ต้องการให้ Core Values เกิดขึ้นจริงในทุกวัน",
+                    desc: "เปลี่ยนค่านิยมบนผนังให้กลายเป็นวิธีคิดและพฤติกรรมจริงของพนักงาน สร้างพื้นที่ที่ 'ตัวจริงทุกคนมีที่ยืน' และหล่อเลี้ยงนวัตกรรมการเติบโตระยะยาว",
+                    outcomes: ["ฝัง Core Values สู่การทำงานประจำวัน", "วัฒนธรรมการชื่นชมและการเติบโตร่วมกัน", "องค์กรมีพลังดึงดูดและรักษาคนเก่งตัวจริง"],
+                    badge: "bg-emerald-50 text-emerald-800 border-emerald-200",
+                    accent: "from-brand-green to-teal-700"
+                  }
+                ].map((course, cIdx) => (
+                  <div 
+                    key={cIdx} 
+                    className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <span className={`text-[11px] font-black uppercase px-3 py-1 rounded-full border ${course.badge} font-display`}>
+                          {course.moduleNumber} · {course.title}
+                        </span>
+                        <span className="text-xl">✨</span>
+                      </div>
+
+                      <h4 className="text-xl sm:text-2xl font-extrabold text-slate-900 mb-1 font-sans">
+                        {course.thaiTitle}
+                      </h4>
+                      <p className="text-xs font-semibold text-brand-purple mb-4">
+                        🎯 {course.target}
+                      </p>
+                      
+                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
+                        {course.desc}
+                      </p>
+
+                      <div className="space-y-2 mb-6">
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block font-display">
+                          สิ่งที่จะได้รับจากหลักสูตร:
+                        </span>
+                        {course.outcomes.map((out, oIdx) => (
+                          <div key={oIdx} className="flex items-center gap-2 text-xs text-slate-700 font-medium">
+                            <CheckCircle className="w-3.5 h-3.5 text-brand-green shrink-0" />
+                            <span>{out}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                      <a 
+                        href="#zombie-check" 
+                        className="text-xs font-bold text-brand-pink hover:underline flex items-center gap-1 font-display"
+                      >
+                        <span>ทำแบบประเมิน Zombie Check</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </a>
+                      <a 
+                        href="#contact" 
+                        className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-brand-purple text-white text-xs font-bold transition-colors font-display"
+                      >
+                        ขอ Proposal หลักสูตรนี้
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Formats Grid */}
+            <div className="mb-10">
+              <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6 font-display text-center">
+                รูปแบบที่สามารถออกแบบและจัดอบรมได้
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {PROGRAM_FORMATS.map((fmt) => {
+                  const IconComp = fmt.icon;
+                  return (
+                    <div 
+                      key={fmt.id} 
+                      className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-purple/40 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-brand-purple bg-purple-100 px-2 py-0.5 rounded-md font-display">
+                            {fmt.tag}
+                          </span>
+                          <IconComp className="w-5 h-5 text-brand-pink" />
+                        </div>
+                        <h4 className="text-base sm:text-lg font-bold text-slate-900 mb-2 font-display">
+                          {fmt.title}
+                        </h4>
+                        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                          {fmt.desc}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="text-center p-4 rounded-2xl bg-purple-50 border border-purple-100 text-xs sm:text-sm text-brand-purple font-medium max-w-xl mx-auto">
+              💡 สามารถเลือกอบรมเฉพาะหัวข้อที่ตรงโจทย์ หรือออกแบบเป็น Development Journey ต่อเนื่องได้
+            </div>
+
+          </div>
+        </section>
+
+        {/* ========================================================
+            SECTION 6: WHO IS IT FOR & EXPECTED OUTCOMES
+        ======================================================== */}
+        <section className="py-20 px-6 bg-white border-y border-brand-border/60 relative">
+          <div className="max-w-5xl mx-auto">
+            
+            <div className="text-center max-w-3xl mx-auto mb-14">
+              <span className="text-xs font-bold uppercase tracking-widest text-brand-pink mb-2 block font-display">
+                TARGET & IMPACT
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-brand-black tracking-tight mb-4 font-sans">
+                เหมาะกับองค์กรที่...
+              </h2>
+              <p className="text-sm sm:text-base text-slate-600">
+                หากองค์กรของคุณกำลังเผชิญโจทย์เหล่านี้ เราพร้อมช่วยออกแบบทางออกที่ตอบโจทย์
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 max-w-4xl mx-auto mb-16">
+              {TARGET_CRITERIA.map((item, idx) => (
                 <div 
                   key={idx} 
-                  className={`w-full md:w-64 p-6 rounded-md border flex flex-col items-center justify-center relative z-10 ${step.color} ${step.glow}`}
+                  className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/90 shadow-xs flex items-start gap-3 hover:border-brand-purple/40 hover:bg-white transition-colors"
                 >
-                  <span className="text-[10px] uppercase font-bold tracking-widest opacity-60 mb-2 font-display">Phase {idx + 1}</span>
-                  <span className="text-base sm:text-lg font-bold text-brand-black">{step.title}</span>
+                  <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700 shrink-0 mt-0.5">
+                    <Check className="w-4 h-4 stroke-[3]" />
+                  </div>
+                  <span className="text-sm sm:text-base font-semibold text-slate-800 leading-snug">
+                    {item}
+                  </span>
                 </div>
               ))}
             </div>
 
-          </div>
-        </section>
-
-
-        {/* SECTION 11: WHY CHOOMCHAM HOUSE? */}
-        <section id="why" className="py-24 px-6 relative bg-brand-purple text-brand-white">
-          <div className="max-w-4xl mx-auto text-center">
-            
-            <span className="text-brand-yellow text-xs font-bold tracking-widest uppercase block mb-3 font-display">09 — WHY CHOOMCHAM HOUSE?</span>
-            <h2 className="text-3xl sm:text-5xl font-sans font-extrabold mb-10 mt-2">
-              เราไม่ได้เชื่อว่าคนต้องถูก “แก้”
-            </h2>
-
-            <div className="bg-brand-white/10 border border-brand-white/10 rounded-lg p-10 md:p-12 text-left relative overflow-hidden shadow-2xl">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-pink/5 rounded-full blur-[80px] pointer-events-none"></div>
-
-              <p className="text-lg sm:text-xl text-brand-surface leading-relaxed mb-8">
-                เราเชื่อว่าคนทำงานจำนวนมากไม่ได้มีความบกพร่องที่ต้องสั่งซ่อมแซมแก้ไขแบบเครื่องจักร <br className="hidden sm:inline" />
-                พวกเขาเพียงต้องการ **พื้นที่ที่อนุญาตให้เขาได้:**
+            {/* Expected Outcomes */}
+            <div className="text-center max-w-3xl mx-auto mb-10">
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-brand-black mb-3 font-sans">
+                ผลลัพธ์ที่เราอยากเห็น
+              </h3>
+              <p className="text-sm sm:text-base text-slate-600">
+                เป้าหมายไม่ใช่แค่การอบรมที่สนุก แต่คือผลลัพธ์ที่เกิดขึ้นจริงเมื่อทุกคนกลับไปทำงาน
               </p>
+            </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center text-xs font-bold mb-8 font-display">
-                <div className="p-4 rounded-md bg-brand-white/5 border border-brand-white/10 text-brand-white">หยุด</div>
-                <div className="p-4 rounded-md bg-brand-white/5 border border-brand-white/10 text-brand-yellow">หายใจ</div>
-                <div className="p-4 rounded-md bg-brand-white/5 border border-brand-white/10 text-brand-green">มองเห็นตัวเอง</div>
-                <div className="p-4 rounded-md bg-brand-white/5 border border-brand-white/10 text-brand-blue">กลับมาเชื่อมกับคนอื่น</div>
-                <div className="p-4 rounded-md bg-brand-white/10 border border-brand-yellow/30 text-brand-yellow bg-brand-yellow/5">ค้นพบพลังของตัวเอง</div>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+              {EXPECTED_OUTCOMES.map((item, i) => (
+                <div 
+                  key={i} 
+                  className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-white hover:border-brand-pink/40 hover:shadow-md transition-all duration-300"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-pink-100 text-brand-pink flex items-center justify-center font-bold text-xs mb-3 font-display">
+                    0{i+1}
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm sm:text-base mb-1.5 font-display">
+                    {item.text}
+                  </h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {item.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
 
-              <div className="text-center md:text-right text-lg md:text-xl font-display font-black text-brand-yellow tracking-wider">
-                นี่คือเหตุผลที่เราเรียกที่นี่ว่า <span className="underline decoration-brand-yellow">CHOOMCHAM HOUSE</span> — บ้านสำหรับการเกิดใหม่
-              </div>
+            {/* Signature Quote */}
+            <div className="p-8 rounded-3xl bg-gradient-to-r from-brand-purple to-indigo-800 text-white text-center shadow-xl max-w-3xl mx-auto">
+              <p className="text-base sm:text-xl font-bold leading-relaxed font-sans">
+                “เพราะการอบรมที่ดี ไม่ควรจบเมื่อเดินออกจากห้องอบรม <br className="hidden sm:inline" />
+                แต่ควรเริ่มเห็นผลเมื่อทุกคนกลับไปทำงานจริง”
+              </p>
             </div>
 
           </div>
         </section>
 
-
-        {/* SECTION 12: ABOUT CHOOMCHAM */}
-        <section id="work" className="py-24 px-6 bg-brand-white text-brand-black border-b border-brand-border">
-          <div className="max-w-5xl mx-auto">
-            
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-              
-              <div className="lg:col-span-5 space-y-6">
-                <span className="text-brand-purple text-xs font-bold tracking-widest uppercase block font-display">10 — ABOUT CHOOMCHAM</span>
-                <h2 className="text-3xl sm:text-5xl font-sans font-extrabold leading-tight mt-2">
-                  จักรวาลชุ่มฉ่ำ <br />
-                  <span className="text-brand-purple">CHOOMCHAM</span>
-                </h2>
-                <p className="text-brand-gray leading-relaxed text-sm sm:text-base">
-                  Choomcham House เป็นหนึ่งในธุรกิจภายใต้จักรวาล CHOOMCHAM ผู้ช่วยขับเคลื่อนการปฏิรูปแบรนด์และการตื่นรู้ทางธุรกิจ
-                </p>
-              </div>
-
-              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                
-                <div className="p-8 rounded-lg bg-brand-surface border border-brand-border hover:border-brand-purple/20 transition-all">
-                  <span className="text-brand-purple font-display font-black text-lg block mb-3 uppercase">Choomcham Branding</span>
-                  <p className="text-brand-gray text-xs sm:text-sm leading-relaxed mb-4">
-                    ช่วยธุรกิจวิเคราะห์ วางทิศทางแบรนด์ ออกแบบภาพลักษณ์แบรนด์ และการทำการตลาดเพื่อสร้างการเกิดใหม่ภายนอกในสายตาตลาด
-                  </p>
-                  <span className="text-xs font-bold text-brand-purple font-display">“เกิดใหม่ในสายตาตลาด”</span>
-                </div>
-
-                <div className="p-8 rounded-lg bg-brand-surface border border-brand-pink/20 bg-brand-pink/5 hover:border-brand-pink/30 transition-all">
-                  <span className="text-brand-pink font-display font-black text-lg block mb-3 uppercase">Choomcham House</span>
-                  <p className="text-brand-gray text-xs sm:text-sm leading-relaxed mb-4">
-                    มุ่งสร้างประสบการณ์การเรียนรู้ ประสานวัฒนธรรมองค์กร พัฒนาศักยภาพผู้นำและพนักงาน เพื่อการเกิดใหม่ทางสภาวะจิตวิญญาณจากข้างใน
-                  </p>
-                  <span className="text-xs font-bold text-brand-pink font-display">“เกิดใหม่จากข้างใน”</span>
-                </div>
-
-              </div>
-
-            </div>
-
-            <div className="mt-16 text-center text-xl font-display font-black text-brand-green tracking-wide">
-              เพราะเราเชื่อว่า: แบรนด์ที่มีชีวิต ต้องเริ่มจากคนที่มีชีวิต
-            </div>
-
-          </div>
-        </section>
-
-
-        {/* SECTION 13: FINAL CTA & CONTACT FORM */}
-        <section id="contact" className="py-24 px-6 bg-brand-purple text-brand-white relative scroll-mt-20">
+        {/* ========================================================
+            SECTION 7: FAQ (คำถามที่พบบ่อย)
+        ======================================================== */}
+        <section id="faq" className="py-20 lg:py-28 px-6 bg-slate-50 border-b border-brand-border/60 relative">
           <div className="max-w-4xl mx-auto">
             
-            <div className="bg-brand-white/5 border border-brand-white/10 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden backdrop-blur-xs">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-brand-pink/15 rounded-full blur-[100px] pointer-events-none"></div>
-              <div className="absolute bottom-0 left-0 w-72 h-72 bg-brand-yellow/10 rounded-full blur-[100px] pointer-events-none"></div>
+            <div className="text-center max-w-2xl mx-auto mb-14">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-pill bg-purple-100 text-brand-purple text-xs font-bold uppercase tracking-widest mb-3 font-display">
+                <HelpCircle className="w-4 h-4 text-brand-pink" />
+                FREQUENTLY ASKED QUESTIONS
+              </div>
+              <h2 className="text-3xl sm:text-5xl font-extrabold text-brand-black tracking-tight mb-3 font-sans">
+                คำถามที่พบบ่อย (FAQ)
+              </h2>
+              <p className="text-sm sm:text-base text-slate-600">
+                รวมข้อสงสัยที่ HR และผู้บริหารสอบถามเข้ามาบ่อยที่สุดเกี่ยวกับหลักสูตร “องค์กรตัวจริง™”
+              </p>
+            </div>
 
-              <div className="text-center mb-10 relative z-10">
-                <span className="text-brand-yellow text-xs font-bold tracking-widest uppercase block mb-3 font-display">
-                  CONTACT & CUSTOM PROGRAM DESIGN
+            {/* Accordion FAQ List */}
+            <div className="space-y-3.5">
+              {FAQ_ITEMS.map((faq) => {
+                const isOpen = openFaqId === faq.id;
+                return (
+                  <div 
+                    key={faq.id}
+                    className={`rounded-2xl border transition-all duration-200 overflow-hidden ${isOpen ? "bg-white border-brand-purple/40 shadow-md" : "bg-white/80 border-slate-200 hover:border-slate-300"}`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleFaq(faq.id)}
+                      className="w-full p-5 sm:p-6 text-left flex items-start justify-between gap-4 cursor-pointer"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="text-xs font-bold text-brand-pink px-2 py-0.5 rounded-md bg-pink-50 border border-pink-100 shrink-0 font-display mt-0.5">
+                          Q{faq.id < 10 ? `0${faq.id}` : faq.id}
+                        </span>
+                        <div>
+                          <span className="text-base sm:text-lg font-bold text-slate-900 leading-snug font-display block">
+                            {faq.question}
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-medium font-display">
+                            หมวดหมู่: {faq.category}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className={`p-1.5 rounded-xl transition-transform duration-200 shrink-0 ${isOpen ? "bg-purple-100 text-brand-purple rotate-180" : "bg-slate-100 text-slate-500"}`}>
+                        <ChevronDown className="w-4 h-4" />
+                      </div>
+                    </button>
+
+                    {isOpen && (
+                      <div className="px-5 sm:px-6 pb-6 pt-1 text-sm text-slate-700 border-t border-slate-100 leading-relaxed space-y-2 whitespace-pre-line bg-slate-50/50 animate-in fade-in duration-200">
+                        <div className="font-sans text-slate-700">
+                          {faq.answer}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Bottom FAQ Consultation Banner */}
+            <div className="mt-12 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-brand-purple to-indigo-900 text-white text-center shadow-lg">
+              <h3 className="text-lg sm:text-xl font-bold mb-2 font-display">
+                ยังมีคำถามอื่น ๆ หรืออยากให้ทีมช่วยวิเคราะห์โจทย์เฉพาะขององค์กร?
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-200 max-w-xl mx-auto mb-6">
+                ทักมาคุยกับ “น้องฉ่ำ” และทีม Choomcham Branding ได้เลยค่ะ เราพร้อมให้คำปรึกษาอย่างเป็นกันเองและตรงจุด
+              </p>
+              <a
+                href="#contact"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-pill bg-brand-pink text-white font-display font-bold text-sm hover:shadow-lg hover:shadow-brand-pink/40 hover:scale-102 transition-all"
+              >
+                <span>พูดคุยกับทีมชุ่มฉ่ำ</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
+
+          </div>
+        </section>
+
+        {/* ========================================================
+            SECTION 8: ABOUT CHOOMCHAM BRANDING
+        ======================================================== */}
+        <section id="about" className="py-20 px-6 bg-brand-surface border-b border-brand-border/60 relative">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
+              
+              <div className="md:col-span-5 text-center md:text-left flex flex-col items-center md:items-start">
+                <img 
+                  src="/chumcham.png" 
+                  alt="Choomcham Branding" 
+                  className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl object-contain bg-white p-3 shadow-xl border border-brand-purple/20 mb-6 group-hover:scale-105 transition-transform duration-300" 
+                />
+                <span className="text-xs font-bold uppercase tracking-widest text-brand-pink font-display">
+                  ABOUT US
                 </span>
-                <h2 className="text-3xl sm:text-5xl font-sans font-extrabold mb-4 leading-tight text-brand-white">
-                  องค์กรของคุณพร้อมกลับมามีชีวิตหรือยัง?
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-brand-black mt-1 mb-2 font-display">
+                  Choomcham Branding
                 </h2>
+                <p className="text-sm font-semibold text-brand-purple font-display">
+                  Branding · Storytelling · Communication · Brand DNA
+                </p>
+              </div>
+
+              <div className="md:col-span-7 space-y-4 text-slate-700 text-sm sm:text-base leading-relaxed">
+                <p>
+                  <strong>Choomcham Branding</strong> คือผู้เชี่ยวชาญด้าน Branding, Storytelling, Communication และการค้นหา Brand DNA จากประสบการณ์กว่า 10 ปี ในการทำงานร่วมกับคน แบรนด์ และการสื่อสารระดับประเทศ
+                </p>
                 
-                <p className="text-brand-surface text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-                  นัดพูดคุยเพื่อวิเคราะห์โจทย์ ขอใบเสนอราคา (Proposal) หรือปรึกษาการออกแบบหลักสูตรที่เหมาะสมกับคนและวัฒนธรรมองค์กรของคุณ
+                <div className="p-5 rounded-2xl bg-white border border-brand-purple/15 shadow-xs">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 font-display">
+                    ภายใต้ความเชื่อเดียวกันว่า:
+                  </p>
+                  <blockquote className="text-base sm:text-lg font-bold text-brand-purple italic">
+                    “ของดีที่ไม่มีใครมองเห็น อาจไม่ได้แปลว่ามันไม่ดี <br />
+                    แต่อาจยังไม่มีพื้นที่ ให้คุณค่าของมันถูกมองเห็น”
+                  </blockquote>
+                </div>
+
+                <p className="font-semibold text-slate-900">
+                  จึงเป็นที่มาของแนวคิด <span className="text-brand-pink font-bold">“ตัวจริงต้องมีที่ยืน”</span> ที่นำมาสู่การออกแบบหลักสูตรพัฒนาคนและองค์กรอย่างแท้จริง
+                </p>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================
+            SECTION 9: INTERACTIVE EVALUATION (ZOMBIE CHECK™)
+        ======================================================== */}
+        <section id="zombie-check" className="py-20 lg:py-28 px-6 bg-slate-900 text-white relative overflow-hidden">
+          {/* Ambient Glows */}
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand-pink/10 rounded-full blur-[120px] pointer-events-none"></div>
+          <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-brand-purple/20 rounded-full blur-[120px] pointer-events-none"></div>
+
+          <div className="max-w-4xl mx-auto relative z-10">
+            
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-pill bg-brand-pink/20 border border-brand-pink/30 text-brand-pink text-xs font-bold uppercase tracking-widest mb-4 font-display">
+                <span>🧟</span>
+                <span>ZOMBIE ORGANIZATION CHECK™ · THE AUTHENTIC DIAGNOSTIC</span>
+              </div>
+              <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4 font-sans">
+                องค์กรของคุณกำลังเป็นซอมบี้แค่ไหน? 🧟
+              </h2>
+              <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+                ตอบ 10 คำถามเพื่อวัดสภาวะจริง ค้นพบสัญญาณความเฉื่อยชาที่ซ่อนอยู่ และรับแนวทางฟื้นฟูทีมจากข้างในสู่ <strong>Living Organization</strong>
+              </p>
+            </div>
+
+            {/* Quiz Flow Component */}
+            {!quizStarted && !showLeadForm && !hasSubmittedQuiz && (
+              <div className="p-8 sm:p-12 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl text-center shadow-2xl">
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-brand-pink/30 to-brand-purple/30 text-brand-pink flex items-center justify-center mx-auto mb-6 border border-white/15 shadow-inner text-3xl">
+                  🧟
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-white mb-3 font-display">
+                  พร้อมสำรวจดัชนีสุขภาพของทีมคุณแล้วหรือยัง?
+                </h3>
+                <p className="text-sm sm:text-base text-slate-300 max-w-lg mx-auto mb-8 leading-relaxed">
+                  ใช้เวลาประมาณ 3 นาที เพื่อค้นพบว่าองค์กรของคุณอยู่ในสภาวะใด จาก 4 ระดับ:
                 </p>
 
-                {/* Inquiry Type Segmented Tabs */}
-                <div className="flex flex-wrap justify-center gap-2 mt-8 max-w-xl mx-auto p-1.5 bg-black/20 rounded-2xl border border-white/10">
-                  <button
+                {/* 4 Levels Preview Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto mb-8 text-left">
+                  <div className="p-3.5 rounded-2xl bg-white/5 border border-pink-500/30">
+                    <span className="text-[10px] font-bold text-pink-400 block font-display">10-17 คะแนน</span>
+                    <span className="text-xs font-bold text-white block mt-0.5">🧟 ZOMBIE</span>
+                    <span className="text-[11px] text-slate-400 block mt-1">หมดไฟ ไร้วิญญาณ</span>
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-white/5 border border-blue-500/30">
+                    <span className="text-[10px] font-bold text-blue-400 block font-display">18-25 คะแนน</span>
+                    <span className="text-xs font-bold text-white block mt-0.5">💨 FADED</span>
+                    <span className="text-[11px] text-slate-400 block mt-1">เริ่มเงียบ ต่างคนต่างทำ</span>
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-white/5 border border-amber-500/30">
+                    <span className="text-[10px] font-bold text-amber-400 block font-display">26-33 คะแนน</span>
+                    <span className="text-xs font-bold text-white block mt-0.5">⚠️ TIRED</span>
+                    <span className="text-[11px] text-slate-400 block mt-1">เหนื่อยสะสม ขาดไฟใหม่</span>
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-white/5 border border-emerald-500/30">
+                    <span className="text-[10px] font-bold text-emerald-400 block font-display">34-40 คะแนน</span>
+                    <span className="text-xs font-bold text-white block mt-0.5">✨ ALIVE</span>
+                    <span className="text-[11px] text-slate-400 block mt-1">องค์กรตัวจริงมีพลัง</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setQuizStarted(true)}
+                  className="px-10 py-4 rounded-pill bg-gradient-to-r from-brand-pink to-rose-600 text-white font-display font-bold text-base hover:shadow-xl hover:shadow-brand-pink/40 hover:scale-105 transition-all cursor-pointer inline-flex items-center gap-2"
+                >
+                  <span>🧟 เริ่มทำแบบประเมิน Zombie Check™</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* In-Progress Quiz Questions */}
+            {quizStarted && !showLeadForm && !hasSubmittedQuiz && (
+              <div className="p-6 sm:p-10 rounded-3xl bg-white/10 border border-white/15 backdrop-blur-xl animate-in fade-in duration-300">
+                <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-white/10 text-xs font-display">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-1 rounded-full bg-brand-pink/20 text-brand-pink font-bold border border-brand-pink/30">
+                      คำถาม {currentQIndex + 1} / {QUIZ_QUESTIONS.length}
+                    </span>
+                    <span className="text-slate-400 hidden sm:inline">Zombie Organization Index</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-slate-300 font-medium">ความคืบหน้า {Math.round(((currentQIndex + 1) / QUIZ_QUESTIONS.length) * 100)}%</span>
+                    <div className="w-24 sm:w-32 h-2 bg-white/20 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-brand-pink transition-all duration-300"
+                        style={{ width: `${((currentQIndex + 1) / QUIZ_QUESTIONS.length) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+
+                <h3 className="text-lg sm:text-2xl font-extrabold text-white mb-6 leading-relaxed">
+                  {QUIZ_QUESTIONS[currentQIndex].question}
+                </h3>
+
+                <div className="space-y-3">
+                  {QUIZ_QUESTIONS[currentQIndex].answers.map((ans, aIdx) => (
+                    <button
+                      key={aIdx}
+                      type="button"
+                      onClick={() => handleAnswerSelect(ans.score)}
+                      className="w-full p-4.5 rounded-2xl bg-white/5 hover:bg-white/15 border border-white/10 hover:border-brand-pink/50 text-left text-xs sm:text-sm text-slate-200 hover:text-white transition-all duration-200 flex items-center justify-between gap-3 group cursor-pointer"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="w-6 h-6 rounded-full bg-white/10 group-hover:bg-brand-pink group-hover:text-white flex items-center justify-center text-xs font-bold text-slate-300 shrink-0 mt-0.5 transition-colors font-display">
+                          {String.fromCharCode(65 + aIdx)}
+                        </span>
+                        <span className="leading-relaxed">{ans.text}</span>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-white/30 group-hover:text-brand-pink shrink-0 transition-colors" />
+                    </button>
+                  ))}
+                </div>
+
+                {currentQIndex > 0 && (
+                  <button 
                     type="button"
-                    onClick={() => { setInquiryType("consultation"); setContactSubmittedOverride(false); }}
-                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold font-display transition-all ${
-                      inquiryType === "consultation"
-                        ? "bg-brand-pink text-white shadow-md"
-                        : "text-white/70 hover:text-white hover:bg-white/5"
-                    }`}
+                    onClick={() => {
+                      setCurrentQIndex(currentQIndex - 1);
+                      setQuizAnswers(quizAnswers.slice(0, -1));
+                    }}
+                    className="mt-6 text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1 font-display"
                   >
-                    🎙️ นัดพูดคุยปรึกษาโจทย์
+                    <ChevronLeft className="w-4 h-4" /> ย้อนกลับไปข้อก่อนหน้า
                   </button>
+                )}
+              </div>
+            )}
+
+            {/* Assessment Lead Submission Form */}
+            {showLeadForm && !hasSubmittedQuiz && (
+              <div className="p-6 sm:p-10 rounded-3xl bg-white/10 border border-white/15 backdrop-blur-xl animate-in fade-in duration-300">
+                <div className="text-center mb-8">
+                  <div className="inline-block px-3.5 py-1 rounded-full bg-amber-400/20 text-amber-300 text-xs font-bold mb-2 font-display border border-amber-400/30">
+                    ✓ ประเมินครบทั้ง 10 ข้อเรียบร้อยแล้ว
+                  </div>
+                  <h3 className="text-xl sm:text-3xl font-extrabold text-white font-sans">
+                    กรอกข้อมูลเพื่อรับผลวิเคราะห์ Zombie Level & Rebirth Plan
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-2">
+                    ผลลัพธ์จะแสดงบนหน้าจอทันที พร้อมส่งสรุปแนวทางฟื้นฟูทีมให้ทางอีเมลหรือไลน์
+                  </p>
+                </div>
+
+                <fetcher.Form method="post" className="space-y-4 max-w-lg mx-auto">
+                  <input type="hidden" name="form_type" value="quiz" />
+                  <input type="hidden" name="score" value={currentScore} />
+                  <input type="hidden" name="result_level" value={resultInfo.level} />
+                  <input type="hidden" name="answers" value={JSON.stringify(quizAnswers)} />
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 font-display">
+                      ชื่อ-นามสกุลผู้ทำแบบประเมิน *
+                    </label>
+                    <input 
+                      type="text" 
+                      name="name" 
+                      required 
+                      placeholder="เช่น คุณกฤษฎา / ผู้บริหาร / HR Manager"
+                      className="w-full bg-white/10 border border-white/20 focus:border-brand-pink rounded-xl px-4 py-3 text-white placeholder-slate-400 outline-none text-sm"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 font-display">
+                        ชื่อองค์กร / บริษัท *
+                      </label>
+                      <input 
+                        type="text" 
+                        name="company" 
+                        required 
+                        placeholder="ชื่อบริษัทหรือหน่วยงาน"
+                        className="w-full bg-white/10 border border-white/20 focus:border-brand-pink rounded-xl px-4 py-3 text-white placeholder-slate-400 outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 font-display">
+                        ตำแหน่งของคุณ
+                      </label>
+                      <input 
+                        type="text" 
+                        name="position" 
+                        placeholder="เช่น CEO, HRD, Team Lead"
+                        className="w-full bg-white/10 border border-white/20 focus:border-brand-pink rounded-xl px-4 py-3 text-white placeholder-slate-400 outline-none text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 font-display">
+                      อีเมล หรือ LINE ID เพื่อส่งผลวิเคราะห์ *
+                    </label>
+                    <input 
+                      type="text" 
+                      name="email_or_line" 
+                      required 
+                      placeholder="email@company.com หรือ Line ID"
+                      className="w-full bg-white/10 border border-white/20 focus:border-brand-pink rounded-xl px-4 py-3 text-white placeholder-slate-400 outline-none text-sm"
+                    />
+                  </div>
+
                   <button
-                    type="button"
-                    onClick={() => { setInquiryType("proposal"); setContactSubmittedOverride(false); }}
-                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold font-display transition-all ${
-                      inquiryType === "proposal"
-                        ? "bg-brand-pink text-white shadow-md"
-                        : "text-white/70 hover:text-white hover:bg-white/5"
-                    }`}
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-4 mt-2 rounded-pill bg-brand-pink text-white font-display font-bold text-base hover:shadow-lg hover:shadow-brand-pink/40 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer transition-all"
                   >
-                    📋 ขอใบเสนอราคา Proposal
+                    {isSubmitting ? (
+                      <span>กำลังประมวลผลดัชนี...</span>
+                    ) : (
+                      <span>ดูผลวิเคราะห์ Zombie Level ทันที</span>
+                    )}
                   </button>
+                </fetcher.Form>
+              </div>
+            )}
+
+            {/* Completed Assessment Result Display */}
+            {hasSubmittedQuiz && (
+              <div className="p-8 sm:p-12 rounded-3xl bg-white text-slate-900 shadow-2xl text-center animate-in zoom-in-95 duration-300">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold mb-3 font-display">
+                  <span>📊</span>
+                  <span>คะแนนรวม: {currentScore} / 40 คะแนน</span>
+                </div>
+
+                <h3 className="text-2xl sm:text-3xl font-extrabold mb-4 font-display text-slate-900">
+                  {resultInfo.title}
+                </h3>
+
+                <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-left max-w-2xl mx-auto mb-8">
+                  <p className="text-sm sm:text-base text-slate-700 leading-relaxed mb-4">
+                    {resultInfo.desc}
+                  </p>
+                  <div className="p-4 rounded-xl bg-purple-50 border border-purple-100 text-xs sm:text-sm text-brand-purple font-medium">
+                    💡 <strong>หลักสูตรแนะนำสำหรับสภาวะนี้:</strong> หลักสูตร <em>From Zombie to Living Organization</em> (เน้นโมดูล {resultInfo.level === "ZOMBIE" ? "REBORN PEOPLE & ALIVE TEAM" : resultInfo.level === "FADED" ? "ALIVE TEAM & REBORN LEADER" : resultInfo.level === "TIRED" ? "REBORN LEADER & LIVING CULTURE" : "LIVING CULTURE & BRAND DNA"})
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <a 
+                    href="#contact" 
+                    className="w-full sm:w-auto px-8 py-3.5 rounded-pill bg-brand-pink text-white font-display font-bold text-sm shadow-md hover:shadow-lg transition-all"
+                  >
+                    ปรึกษาทีมชุ่มฉ่ำเพื่อวางแผนปลดล็อกทีม
+                  </a>
                   <button
                     type="button"
-                    onClick={() => { setInquiryType("program"); setContactSubmittedOverride(false); }}
-                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold font-display transition-all ${
-                      inquiryType === "program"
-                        ? "bg-brand-pink text-white shadow-md"
-                        : "text-white/70 hover:text-white hover:bg-white/5"
-                    }`}
+                    onClick={restartQuiz}
+                    className="w-full sm:w-auto px-6 py-3.5 rounded-pill bg-slate-100 hover:bg-slate-200 text-slate-700 font-display font-semibold text-sm transition-colors cursor-pointer"
                   >
-                    📚 สอบถามหลักสูตรอบรม
+                    ทำแบบประเมินอีกครั้ง
                   </button>
                 </div>
               </div>
+            )}
 
-              {/* Form submission response message */}
-              {(hasSubmittedContact && !contactSubmittedOverride) ? (
-                <div className="p-8 sm:p-10 rounded-2xl bg-brand-green/15 border border-brand-green/40 text-center max-w-xl mx-auto animate-in zoom-in-95 duration-300">
-                  <CheckCircle className="w-16 h-16 text-brand-green mx-auto mb-4 glow-green animate-bounce" />
-                  <h3 className="text-2xl font-bold text-brand-green mb-2 font-display">ส่งข้อมูลสำเร็จเรียบร้อย!</h3>
-                  <p className="text-white text-sm leading-relaxed mb-6">
-                    ขอบคุณที่ติดต่อ <strong>บ้านชุ่มฉ่ำ Choomcham House</strong> ทีมผู้ออกแบบกระบวนการจะติดต่อกลับหาคุณภายใน 24 ชั่วโมง เพื่อส่งเอกสารข้อเสนอโครงการและนัดหมายเวลาพูดคุยครับ
+          </div>
+        </section>
+
+        {/* ========================================================
+            SECTION 10: FINAL CLOSING CALL TO ACTION & FORM
+        ======================================================== */}
+        <section id="contact" className="py-20 lg:py-28 px-6 bg-gradient-to-b from-brand-surface via-white to-purple-50/50 relative">
+          <div className="max-w-5xl mx-auto">
+            
+            {/* The Final Provocative Question */}
+            <div className="p-8 sm:p-12 rounded-3xl bg-brand-purple text-white text-center shadow-2xl mb-16 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-brand-pink/20 rounded-full blur-3xl pointer-events-none"></div>
+              
+              <h2 className="text-2xl sm:text-4xl font-extrabold mb-4 font-sans leading-snug">
+                องค์กรของคุณ อาจไม่จำเป็นต้องหาคนเก่งเพิ่ม
+              </h2>
+
+              <p className="text-lg sm:text-2xl font-semibold text-amber-300 max-w-3xl mx-auto leading-relaxed mb-6 font-sans">
+                แต่อาจต้องเริ่มจากคำถามว่า... <br />
+                “เราได้สร้างพื้นที่ ให้คนเก่งที่มีอยู่แล้ว แสดงศักยภาพเต็มที่หรือยัง?”
+              </p>
+
+              <div className="pt-4 border-t border-white/15 max-w-xl mx-auto text-xs sm:text-sm text-white/80 font-display">
+                <strong>องค์กรตัวจริง™ THE AUTHENTIC ORGANIZATION</strong> <br />
+                หลักสูตรพัฒนาคน ทีม ผู้นำ และวัฒนธรรมองค์กร โดย Choomcham Branding
+              </div>
+            </div>
+
+            {/* Lead Form Container */}
+            <div className="max-w-3xl mx-auto bg-white p-6 sm:p-10 rounded-3xl border border-slate-200 shadow-xl">
+              
+              <div className="text-center mb-8">
+                <span className="text-xs font-bold uppercase tracking-widest text-brand-pink font-display block mb-1">
+                  GET IN TOUCH
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-display">
+                  ปรึกษาโจทย์และรับข้อเสนอสำหรับองค์กร
+                </h3>
+              </div>
+
+              {/* Inquiry Type Tabs */}
+              <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-slate-100 mb-8 text-xs font-bold font-display">
+                <button
+                  type="button"
+                  onClick={() => setInquiryType("consultation")}
+                  className={`py-2.5 rounded-xl transition-all cursor-pointer ${inquiryType === "consultation" ? "bg-white text-brand-purple shadow-xs" : "text-slate-600 hover:text-slate-900"}`}
+                >
+                  ปรึกษาโจทย์องค์กร
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInquiryType("program")}
+                  className={`py-2.5 rounded-xl transition-all cursor-pointer ${inquiryType === "program" ? "bg-white text-brand-purple shadow-xs" : "text-slate-600 hover:text-slate-900"}`}
+                >
+                  ขอรายละเอียดหลักสูตร
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInquiryType("proposal")}
+                  className={`py-2.5 rounded-xl transition-all cursor-pointer ${inquiryType === "proposal" ? "bg-white text-brand-purple shadow-xs" : "text-slate-600 hover:text-slate-900"}`}
+                >
+                  ขอใบเสนอราคา
+                </button>
+              </div>
+
+              {hasSubmittedContact ? (
+                <div className="p-8 rounded-2xl bg-emerald-50 border border-emerald-200 text-center animate-in zoom-in-95 duration-300">
+                  <CheckCircle className="w-12 h-12 text-emerald-600 mx-auto mb-3" />
+                  <h4 className="text-xl font-bold text-emerald-900 mb-2 font-display">
+                    ส่งข้อมูลเรียบร้อยแล้ว
+                  </h4>
+                  <p className="text-sm text-emerald-700 max-w-md mx-auto">
+                    ทีม Choomcham Branding ได้รับข้อมูลโจทย์ของคุณแล้ว และจะติดต่อกลับเพื่อให้คำปรึกษาและส่งรายละเอียดภายใน 24 ชั่วโมงครับ
                   </p>
-                  <div className="flex flex-wrap gap-3 justify-center">
-                    <a
-                      href="/proposal?company=องค์กรของคุณ&price=185000"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-5 py-2.5 rounded-pill bg-white text-purple-900 font-bold text-xs hover:bg-slate-100 transition-colors"
-                    >
-                      ดูตัวอย่างรูปแบบ Proposal
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => setContactSubmittedOverride(true)}
-                      className="px-5 py-2.5 rounded-pill border border-white/30 text-white hover:bg-white/10 font-bold text-xs transition-colors"
-                    >
-                      ส่งข้อมูลเพิ่มเติม / ติดต่อเรื่องอื่น
-                    </button>
-                  </div>
                 </div>
               ) : (
-                <div className="max-w-2xl mx-auto text-brand-black">
-                  <fetcher.Form method="post" className="space-y-4">
-                    <input type="hidden" name="form_type" value="contact" />
-                    <input type="hidden" name="score" value="0" />
-                    <input 
-                      type="hidden" 
-                      name="result_level" 
-                      value={inquiryType === "proposal" ? "PROPOSAL_REQUEST" : inquiryType === "consultation" ? "CONSULT_BRIEF" : "INQUIRY"} 
-                    />
+                <fetcher.Form method="post" className="space-y-4">
+                  <input type="hidden" name="form_type" value="contact" />
+                  <input type="hidden" name="result_level" value={inquiryType.toUpperCase()} />
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
-                          ชื่อผู้ติดต่อ <span className="text-brand-pink">*</span>
-                        </label>
-                        <input 
-                          type="text" 
-                          name="name" 
-                          required
-                          placeholder="ชื่อ-นามสกุลของคุณ"
-                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors text-sm shadow-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
-                          บริษัท / องค์กร <span className="text-brand-pink">*</span>
-                        </label>
-                        <input 
-                          type="text" 
-                          name="company" 
-                          required
-                          placeholder="ชื่อบริษัทหรือหน่วยงาน"
-                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors text-sm shadow-xs"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
-                          ตำแหน่งงาน <span className="text-brand-pink">*</span>
-                        </label>
-                        <input 
-                          type="text" 
-                          name="position" 
-                          required
-                          placeholder="เช่น HRD, MD, Founder, CEO"
-                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors text-sm shadow-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
-                          ช่องทางติดต่อ (อีเมล / LINE ID / เบอร์โทร) <span className="text-brand-pink">*</span>
-                        </label>
-                        <input 
-                          type="text" 
-                          name="email_or_line" 
-                          required
-                          placeholder="อีเมล หรือ เบอร์โทร / ID LINE"
-                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors text-sm shadow-xs"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="sm:col-span-1">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
-                          หลักสูตรที่สนใจ
-                        </label>
-                        <select 
-                          name="program_interest"
-                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors text-sm shadow-xs appearance-none font-medium"
-                        >
-                          <option value="REBORN PEOPLE">REBORN PEOPLE (ชุบชีวิตคนทำงาน)</option>
-                          <option value="ALIVE TEAM">ALIVE TEAM (สลาย Silo เชื่อมใจ)</option>
-                          <option value="REBORN LEADER">REBORN LEADER (ผู้นำแบบ Coach)</option>
-                          <option value="LIVING ORGANIZATION">LIVING ORG (วัฒนธรรมองค์กร)</option>
-                          <option value="CUSTOM WORKSHOP">ออกแบบ Workshop เฉพาะทาง</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
-                          จำนวนคนโดยประมาณ
-                        </label>
-                        <select 
-                          name="team_size"
-                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors text-sm shadow-xs appearance-none font-medium"
-                        >
-                          <option value="15-30 คน">15 - 30 ท่าน (Intensive)</option>
-                          <option value="31-60 คน">31 - 60 ท่าน (Department)</option>
-                          <option value="61-100 คน">61 - 100 ท่าน (Medium Org)</option>
-                          <option value="100+ คน">100 ท่านขึ้นไป (All-Hands)</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
-                          ช่วงเวลาที่คาดว่าจะจัด
-                        </label>
-                        <select 
-                          name="timeline"
-                          className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors text-sm shadow-xs appearance-none font-medium"
-                        >
-                          <option value="ด่วนที่สุดใน 1 เดือน">ด่วนที่สุดใน 1 เดือน</option>
-                          <option value="ภายใน 2-3 เดือน">ภายใน 2 - 3 เดือน</option>
-                          <option value="วางแผนล่วงหน้า / ขอใบเสนอราคา">วางแผนล่วงหน้า / งบประมาณ</option>
-                        </select>
-                      </div>
-                    </div>
-
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-brand-surface mb-1.5 font-display">
-                        โจทย์หรือเป้าหมายที่ต้องการให้เราช่วยออกแบบ
+                      <label className="block text-xs font-bold text-slate-700 mb-1 font-display">
+                        ชื่อผู้ติดต่อ *
                       </label>
-                      <textarea 
-                        name="details" 
-                        rows={3}
-                        placeholder="เช่น ทีมขาดความเชื่อมโยง ทำงานแบบหุ่นยนต์, ต้องการกระตุ้นความริเริ่มสร้างสรรค์, พนักงานเฉื่อยชาหมดไฟสะสม..."
-                        className="w-full bg-brand-white border border-brand-border focus:border-brand-purple rounded-xl px-4 py-3 text-brand-black outline-none transition-colors resize-none text-sm shadow-xs"
+                      <input 
+                        type="text" 
+                        name="name" 
+                        required 
+                        placeholder="ชื่อ-นามสกุล"
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-brand-purple focus:bg-white rounded-xl px-4 py-3 text-slate-900 text-sm outline-none transition-colors"
                       />
                     </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1 font-display">
+                        ชื่อองค์กร / บริษัท *
+                      </label>
+                      <input 
+                        type="text" 
+                        name="company" 
+                        required 
+                        placeholder="ชื่อบริษัทของคุณ"
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-brand-purple focus:bg-white rounded-xl px-4 py-3 text-slate-900 text-sm outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
 
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full py-4 mt-4 rounded-pill bg-brand-pink text-brand-white font-display font-bold text-base sm:text-lg tracking-wide hover:shadow-[0_4px_14px_rgba(227,52,107,0.35)] disabled:opacity-50 flex items-center justify-center gap-2 hover:scale-101 active:scale-99 transition-all cursor-pointer"
-                    >
-                      {isSubmitting ? (
-                        <span className="flex items-center gap-2">
-                          <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                          <span>กำลังส่งข้อมูล...</span>
-                        </span>
-                      ) : (
-                        <span>
-                          {inquiryType === "proposal" ? "ขอใบเสนอราคา & ออกแบบโปรแกรม" : inquiryType === "consultation" ? "นัดพูดคุยวิเคราะห์โจทย์องค์กร" : "ส่งข้อความติดต่อทีมงาน"}
-                        </span>
-                      )}
-                    </button>
-                  </fetcher.Form>
-                </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1 font-display">
+                        ตำแหน่งในองค์กร
+                      </label>
+                      <input 
+                        type="text" 
+                        name="position" 
+                        placeholder="เช่น ผู้บริหาร, HR Manager, Team Lead"
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-brand-purple focus:bg-white rounded-xl px-4 py-3 text-slate-900 text-sm outline-none transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1 font-display">
+                        เบอร์โทรศัพท์ / LINE ID / Email *
+                      </label>
+                      <input 
+                        type="text" 
+                        name="email_or_line" 
+                        required 
+                        placeholder="ช่องทางติดต่อกลับที่สะดวก"
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-brand-purple focus:bg-white rounded-xl px-4 py-3 text-slate-900 text-sm outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1 font-display">
+                        หลักสูตร / รูปแบบที่สนใจ
+                      </label>
+                      <select 
+                        name="program_interest"
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-brand-purple focus:bg-white rounded-xl px-4 py-3 text-slate-900 text-sm outline-none transition-colors"
+                      >
+                        <option value="In-house Training & Workshop">In-house Training & Workshop</option>
+                        <option value="Communication Workshop">Communication Workshop</option>
+                        <option value="Team Development">Team Development</option>
+                        <option value="Leadership Development">Leadership Development</option>
+                        <option value="Future Leader Program">Future Leader Program</option>
+                        <option value="Culture Workshop">Culture Workshop</option>
+                        <option value="Customized Organization Program">Customized Organization Program</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1 font-display">
+                        กรอบเวลาที่วางแผนจัดอบรม
+                      </label>
+                      <select 
+                        name="timeline"
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-brand-purple focus:bg-white rounded-xl px-4 py-3 text-slate-900 text-sm outline-none transition-colors"
+                      >
+                        <option value="ด่วนที่สุดใน 1 เดือน">ด่วนที่สุดใน 1 เดือน</option>
+                        <option value="ภายใน 2-3 เดือน">ภายใน 2-3 เดือน</option>
+                        <option value="วางแผนล่วงหน้า / ขอใบเสนอราคา">วางแผนล่วงหน้า / จัดสรรงบประมาณ</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1 font-display">
+                      รายละเอียดโจทย์หรือเป้าหมายที่ต้องการให้เราช่วยออกแบบ
+                    </label>
+                    <textarea 
+                      name="details" 
+                      rows={3}
+                      placeholder="เช่น มีคนเก่งแต่ต่างคนต่างทำ, ต้องการพัฒนาทักษะการนำคนให้หัวหน้าทีม, ปรับปรุง Communication ภายในทีม..."
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-brand-purple focus:bg-white rounded-xl px-4 py-3 text-slate-900 text-sm outline-none resize-none transition-colors"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-4 mt-2 rounded-pill bg-brand-pink text-white font-display font-bold text-base shadow-lg shadow-brand-pink/25 hover:shadow-brand-pink/40 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  >
+                    {isSubmitting ? (
+                      <span>กำลังส่งข้อมูล...</span>
+                    ) : (
+                      <span>
+                        {inquiryType === "proposal" ? "ขอใบเสนอราคา & ออกแบบหลักสูตร" : inquiryType === "program" ? "ขอรายละเอียดหลักสูตรสำหรับองค์กร" : "นัดปรึกษาโจทย์องค์กรกับทีมงาน"}
+                      </span>
+                    )}
+                  </button>
+                </fetcher.Form>
               )}
 
             </div>
@@ -1686,56 +2090,105 @@ export default function Home() {
 
       </main>
 
-      {/* Footer */}
-      <footer className="bg-brand-black border-t border-brand-border/10 py-16 px-6 relative z-10 text-xs sm:text-sm text-brand-gray">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+      {/* FOOTER */}
+      <footer className="bg-brand-black text-slate-400 py-16 px-6 relative z-10 text-xs sm:text-sm border-t border-white/10">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
           
-          <div className="flex items-center gap-4 text-center md:text-left">
+          <div className="flex items-center gap-4">
             <img 
-              src="/logo.jpg" 
-              alt="บ้านชุ่มฉ่ำ Choomcham House" 
-              className="w-14 h-14 rounded-2xl bg-white p-1 shadow-md object-contain" 
+              src="/chumcham.png" 
+              alt="Choomcham Branding" 
+              className="w-12 h-12 rounded-2xl bg-white p-1.5 object-contain shadow-md" 
             />
             <div>
-              <span className="font-display font-black text-lg tracking-tight bg-gradient-to-r from-brand-pink via-brand-yellow to-brand-green bg-clip-text text-transparent block mb-1">
-                บ้านชุ่มฉ่ำ CHOOMCHAM HOUSE
-              </span>
-              <p className="text-brand-gray text-xs leading-relaxed max-w-sm">
-                Helping People & Organizations Reborn From Within. <br />
-                เกิดใหม่จากข้างใน เพื่อกลับไปสร้างสิ่งใหม่ข้างนอก
+              <div className="flex items-center gap-2">
+                <span className="font-display font-black text-lg text-white block">
+                  บ้านชุ่มฉ่ำ
+                </span>
+                <span className="font-display font-bold text-xs text-brand-pink tracking-wider">
+                  CHOOMCHAM HOUSE
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                องค์กรตัวจริง™ · “ตัวจริงต้องมีที่ยืน”
               </p>
             </div>
           </div>
 
-          <div className="flex gap-8 text-xs text-brand-gray font-display">
-            <a href="#zombie-check" className="hover:text-brand-pink transition-colors">Zombie Check</a>
-            <a href="#programs" className="hover:text-brand-pink transition-colors">Programs</a>
-            <a href="#belief" className="hover:text-brand-pink transition-colors font-medium">เราเชื่อว่า</a>
-            <a href="#contact" className="hover:text-brand-pink transition-colors font-medium">นัดคุย</a>
+          <div className="flex flex-wrap justify-center gap-6 text-xs font-display">
+            <a href="#authentic-org" className="hover:text-white transition-colors">องค์กรตัวจริง™</a>
+            <a href="#levels" className="hover:text-white transition-colors">5 ระดับการเติบโต</a>
+            <a href="#programs" className="hover:text-white transition-colors">หลักสูตร</a>
+            <a href="#zombie-check" className="hover:text-brand-pink transition-colors font-bold">🧟 Zombie Check™</a>
+            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
+            <a href="#contact" className="hover:text-white transition-colors font-bold text-brand-pink">ติดต่อเรา</a>
           </div>
 
-          <div className="text-center md:text-right text-xs">
-            <p>© 2026 Choomcham. All rights reserved.</p>
-            <p className="mt-1 opacity-65 font-display">Helping People & Organizations Reborn From Within.</p>
+          <div className="text-center md:text-right text-xs text-slate-400">
+            <p>© {new Date().getFullYear()} Choomcham Branding. All rights reserved.</p>
+            <p className="mt-1 opacity-70">The Authentic Organization Framework · “ตัวจริงต้องมีที่ยืน”</p>
           </div>
 
         </div>
       </footer>
 
-      {/* Fixed bottom Demo Bar as per KruDen WebDev step 3 instructions */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#080604]/95 backdrop-blur-md border-t border-brand-purple/10 py-3 px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-        <div className="flex items-center gap-2">
-          <img src="/logo.jpg" alt="Choomcham" className="w-5 h-5 rounded-full object-cover bg-white" />
-          <span className="text-[10px] text-brand-surface font-display">
-            🔮 <strong className="text-brand-pink">บ้านชุ่มฉ่ำ Choomcham House</strong> &nbsp;·&nbsp; Helping People & Organizations Reborn From Within
-          </span>
+      {/* Gallery Lightbox Modal */}
+      {lightboxIndex !== null && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
+          onClick={() => setLightboxIndex(null)}
+        >
+          <div 
+            className="relative max-w-4xl w-full bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-white/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setLightboxIndex(null)}
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors cursor-pointer"
+              aria-label="Close Lightbox"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <img 
+              src={WORKSHOP_GALLERY_IMAGES[lightboxIndex].url} 
+              alt={WORKSHOP_GALLERY_IMAGES[lightboxIndex].title}
+              className="w-full max-h-[70vh] object-contain bg-black/40" 
+            />
+
+            <div className="p-6 bg-slate-900 text-white flex items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-bold text-brand-pink uppercase tracking-widest font-display block mb-1">
+                  {WORKSHOP_GALLERY_IMAGES[lightboxIndex].category}
+                </span>
+                <h4 className="text-base sm:text-lg font-bold">
+                  {WORKSHOP_GALLERY_IMAGES[lightboxIndex].title}
+                </h4>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setLightboxIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : WORKSHOP_GALLERY_IMAGES.length - 1))}
+                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                  aria-label="Previous Image"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLightboxIndex((prev) => (prev !== null && prev < WORKSHOP_GALLERY_IMAGES.length - 1 ? prev + 1 : 0))}
+                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                  aria-label="Next Image"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-3 text-[10px] font-display">
-          <a href="#zombie-check" className="px-2.5 py-1 rounded-md bg-brand-black/30 border border-brand-purple/20 text-brand-surface hover:text-white transition-colors">ทำแบบประเมิน</a>
-          <a href="#programs" className="px-2.5 py-1 rounded-md bg-brand-black/30 border border-brand-purple/20 text-brand-surface hover:text-white transition-colors">Programs</a>
-          <a href="#contact" className="px-2.5 py-1 rounded-md bg-brand-pink text-brand-white font-bold hover:scale-105 transition-all">นัดคุยกับเรา</a>
-        </div>
-      </div>
+      )}
 
     </div>
   );

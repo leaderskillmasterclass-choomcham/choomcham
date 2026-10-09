@@ -23,7 +23,7 @@ export const CHOOMCHAM_GLOBAL_SCHEMA = {
       "name": "บ้านชุ่มฉ่ำ CHOOMCHAM HOUSE",
       "alternateName": "Choomcham House",
       "url": "https://choomcham.pages.dev",
-      "logo": "https://choomcham.pages.dev/logo.jpg",
+      "logo": "https://choomcham.pages.dev/chumcham.png",
       "description": "B2B People & Organizational Transformation Platform ช่วยคนและองค์กรเกิดใหม่จากข้างใน (Inner Transformation)",
       "sameAs": [
         "https://www.facebook.com/choomchamhouse",

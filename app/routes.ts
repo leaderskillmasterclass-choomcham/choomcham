@@ -8,6 +8,10 @@ export default [
   route("admin/login", "routes/admin/login.tsx"),
   route("admin/dashboard", "routes/admin/dashboard.tsx"),
   route("admin/crm", "routes/admin/crm.tsx"),
+  route("admin/proposals", "routes/admin/proposals.tsx"),
+  route("admin/content-studio", "routes/admin/content-studio.tsx"),
+  route("admin/gallery", "routes/admin/gallery.tsx"),
   route("admin/projects", "routes/admin/projects.tsx"),
   route("admin/partners", "routes/admin/partners.tsx"),
+  route("admin/users", "routes/admin/users.tsx"),
 ] satisfies RouteConfig;

@@ -1,6 +1,7 @@
 import React from "react";
 import { AdminLayout } from "~/components/admin/AdminLayout";
-import { Handshake, Award, Coins, PieChart, Users, Sparkles, TrendingUp } from "lucide-react";
+import { Handshake, Award, Coins, PieChart, Users, Sparkles, TrendingUp, Download } from "lucide-react";
+import { exportPartnersLedgerToExcel } from "~/lib/excel";
 
 export function meta() {
   return [
@@ -57,11 +58,25 @@ export default function AdminPartners() {
     { label: "6. Customer CSAT / NPS", value: "9.6 / 10", desc: "ความพึงพอใจการ Reborn" },
   ];
 
+  const handleExportExcel = () => {
+    exportPartnersLedgerToExcel(ledgerEntries, pilotMetrics);
+  };
+
   return (
     <AdminLayout
       title="Partner Network & Contribution Ledger"
       subtitle="ระบบบันทึกคุณค่าและการมีส่วนร่วม 4 ด้าน (Marketing, Sales, Solution, Operation) และตัวชี้วัด Pilot 3 เดือน"
     >
+      <div className="flex justify-end mb-6">
+        <button
+          onClick={handleExportExcel}
+          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all hover:scale-102"
+        >
+          <Download className="w-3.5 h-3.5" />
+          <span>ดาวน์โหลด Ledger Excel (.xlsx)</span>
+        </button>
+      </div>
+
       {/* Pilot 6 Metrics Cards */}
       <div className="mb-8">
         <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">

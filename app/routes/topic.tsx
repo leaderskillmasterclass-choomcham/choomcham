@@ -67,7 +67,7 @@ export function meta({ params }: Route.MetaArgs) {
     { property: "og:description", content: topic.hook },
     { property: "og:type", content: "article" },
     { property: "og:url", content: `https://choomcham.pages.dev/topics/${slug}` },
-    { property: "og:image", content: "/logo.jpg" },
+    { property: "og:image", content: "/chumcham.png" },
   ];
 }
 
@@ -83,7 +83,7 @@ export default function TopicPage() {
         "@type": "Article",
         "headline": topic.title,
         "description": topic.hook,
-        "image": "https://choomcham.pages.dev/logo.jpg",
+        "image": "https://choomcham.pages.dev/chumcham.png",
         "author": {
           "@type": "Organization",
           "name": "บ้านชุ่มฉ่ำ CHOOMCHAM HOUSE",
@@ -94,7 +94,7 @@ export default function TopicPage() {
           "name": "บ้านชุ่มฉ่ำ CHOOMCHAM HOUSE",
           "logo": {
             "@type": "ImageObject",
-            "url": "https://choomcham.pages.dev/logo.jpg"
+            "url": "https://choomcham.pages.dev/chumcham.png"
           }
         },
         "mainEntityOfPage": `https://choomcham.pages.dev/topics/${currentSlug}`

@@ -98,9 +98,9 @@ export default function ProposalView() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-8 border-b border-slate-200 gap-6">
           <div className="flex items-center gap-4">
             <img 
-              src="/logo.jpg" 
+              src="/chumcham.png" 
               alt="บ้านชุ่มฉ่ำ Logo" 
-              className="w-16 h-16 rounded-2xl p-1 bg-white border border-purple-200 shadow-xs object-contain"
+              className="w-16 h-16 rounded-2xl p-1.5 bg-white border border-purple-200 shadow-xs object-contain"
             />
             <div>
               <div className="flex items-center gap-2">

@@ -1,6 +1,7 @@
 import React from "react";
 import { AdminLayout } from "~/components/admin/AdminLayout";
-import { FolderKanban, CheckCircle2, Clock, Sparkles, Building2, User, ArrowRight } from "lucide-react";
+import { FolderKanban, CheckCircle2, Clock, Sparkles, Building2, User, ArrowRight, Download } from "lucide-react";
+import { exportProjectsToExcel } from "~/lib/excel";
 
 export function meta() {
   return [
@@ -46,11 +47,25 @@ export default function AdminProjects() {
     },
   ];
 
+  const handleExportExcel = () => {
+    exportProjectsToExcel(projects);
+  };
+
   return (
     <AdminLayout
       title="Transformation Project Delivery"
       subtitle="ติดตามความคืบหน้าโครงการส่งมอบการ Reborn องค์กรลูกค้าตาม Process Model: Reset → Recreate"
     >
+      <div className="flex justify-end mb-6">
+        <button
+          onClick={handleExportExcel}
+          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all hover:scale-102"
+        >
+          <Download className="w-3.5 h-3.5" />
+          <span>ดาวน์โหลดโปรเจกต์ Excel (.xlsx)</span>
+        </button>
+      </div>
+
       <div className="space-y-6">
         {projects.map((prj) => (
           <div key={prj.id} className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs">

@@ -14,6 +14,20 @@ import { JsonLd, CHOOMCHAM_GLOBAL_SCHEMA } from "./components/JsonLd";
 export const links: Route.LinksFunction = () => [
   { rel: "icon", type: "image/png", href: "/favicon.png" },
   { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+  {
+    rel: "preload",
+    href: "/fonts/cloud-soft/CloudSoft-Bold.ttf",
+    as: "font",
+    type: "font/ttf",
+    crossOrigin: "anonymous",
+  },
+  {
+    rel: "preload",
+    href: "/fonts/cloud-soft/CloudSoft-Light.ttf",
+    as: "font",
+    type: "font/ttf",
+    crossOrigin: "anonymous",
+  },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",
