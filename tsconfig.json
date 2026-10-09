@@ -26,6 +26,7 @@
   "exclude": [
     "node_modules",
     "build",
-    "choomcham-professional-update"
+    "choomcham-professional-update",
+    "choomcham-growth-programs-update"
   ]
 }

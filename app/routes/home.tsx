@@ -1,4 +1,5 @@
-import { useFetcher } from "react-router";
+import { Link, useFetcher } from "react-router";
+import { programUrl, requestUrl } from "~/lib/programs";
 import type { Route } from "./+types/home";
 import { useState, useEffect } from "react";
 import { SiteHeader } from "~/components/layout/SiteHeader";
@@ -16,6 +17,7 @@ import {
 
 export function meta({}: Route.MetaArgs) {
   return [
+    { tagName: "link", rel: "canonical", href: "https://choomcham.pages.dev/" },
     { title: "องค์กรตัวจริง™ THE AUTHENTIC ORGANIZATION | Choomcham Branding" },
     { name: "description", content: "หลักสูตรพัฒนาคน ทีม ผู้นำ และวัฒนธรรมองค์กร เพื่อพัฒนาคนจาก 'ข้างใน' ไปสู่การเปลี่ยนแปลงระดับ 'องค์กร' ภายใต้แนวคิด 'ตัวจริงต้องมีที่ยืน' โดย Choomcham Branding" },
     { name: "keywords", content: "องค์กรตัวจริง, The Authentic Organization, ตัวจริงต้องมีที่ยืน, Choomcham Branding, พัฒนาองค์กร, จัดอบรมองค์กร, Teamwork, Leadership, Corporate Culture, In-house Training, ครูอีฟ, พัฒนาคน" },
@@ -1195,14 +1197,14 @@ export default function Home() {
                       </details>
 
                       <div className="pt-3 border-t border-slate-100 flex items-center justify-between w-full">
-                        <button
-                          type="button"
-                          onClick={() => handleRequestProposal(`Level ${lvl.levelNumber}: ${lvl.title} (${lvl.code})`)}
+                        <Link
+                          to={programUrl(lvl.code.toLowerCase())}
                           className="text-xs font-bold text-brand-purple hover:text-brand-pink flex items-center gap-1 font-display cursor-pointer transition-colors"
                         >
-                          <span>ขอ Proposal / รายละเอียดระดับนี้</span>
+                          <span>ดูรายละเอียดหลักสูตร</span>
                           <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
+                        </Link>
+                        <Link to={requestUrl(lvl.code.toLowerCase())} className="text-xs font-bold text-brand-pink hover:underline">ขอ Proposal →</Link>
                       </div>
                     </div>
                   </div>
@@ -1433,6 +1435,7 @@ export default function Home() {
                 <p className="text-sm sm:text-base text-slate-600 mt-2 max-w-2xl mx-auto">
                   หลักสูตรเรือธงในการชุบชีวิตคน ทีม และองค์กร เปลี่ยนภาวะหมดไฟเฉื่อยชา สู่องค์กรตัวจริงที่มีพลังสร้างสรรค์
                 </p>
+                <div className="program-actions justify-center mt-5"><Link className="program-button" to="/programs/from-zombie-to-living-organization">ดูหลักสูตรเรือธง</Link><Link className="program-button secondary" to={requestUrl("from-zombie-to-living-organization")}>ขอ Proposal โปรแกรมเต็ม</Link></div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1522,13 +1525,12 @@ export default function Home() {
                         <span>ทำแบบประเมิน Zombie Check</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </a>
-                      <button 
-                        type="button"
-                        onClick={() => handleRequestProposal(`Module ${course.moduleNumber.replace("MODULE ", "")}: ${course.thaiTitle} (${course.title})`)}
+                      <Link
+                        to={requestUrl(["reborn", "team", "leader", "culture"][cIdx])}
                         className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-brand-purple text-white text-xs font-bold transition-colors font-display cursor-pointer"
                       >
                         ขอ Proposal หลักสูตรนี้
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 ))}

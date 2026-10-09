@@ -9,12 +9,12 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import "./styles/programs.css";
 import { JsonLd, CHOOMCHAM_GLOBAL_SCHEMA } from "./components/JsonLd";
 
 export const links: Route.LinksFunction = () => [
   { rel: "icon", type: "image/png", href: "/favicon.png" },
-  { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
-  { rel: "canonical", href: "https://choomcham.pages.dev/" }
+  { rel: "apple-touch-icon", href: "/apple-touch-icon.png" }
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -23,7 +23,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="robots" content="index, follow" />
         <meta property="og:site_name" content="บ้านชุ่มฉ่ำ CHOOMCHAM HOUSE" />
         <meta property="og:locale" content="th_TH" />
         <meta name="twitter:card" content="summary_large_image" />

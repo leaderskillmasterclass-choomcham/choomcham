@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FORMAT_LABELS } from "~/lib/proposal-request";
 import { AdminLayout } from "~/components/admin/AdminLayout";
 import { 
   Building2, 
@@ -532,6 +533,19 @@ export default function AdminCRM() {
                     <span className="text-slate-700 bg-slate-50 p-2 rounded-lg leading-relaxed">{selectedLead.dimensions_scores.details}</span>
                   </div>
                 )}
+                {selectedLead.dimensions_scores?.proposal_brief && <div className="text-xs space-y-2 pt-3 border-t border-slate-100">
+                  <h4 className="font-bold text-purple-700">ข้อมูลออกแบบโปรแกรม</h4>
+                  {[
+                    ["กลุ่มผู้เรียน", selectedLead.dimensions_scores.proposal_brief.audience],
+                    ["จำนวนผู้เรียน", `${selectedLead.dimensions_scores.proposal_brief.participants} คน`],
+                    ["รูปแบบ", FORMAT_LABELS[selectedLead.dimensions_scores.proposal_brief.format] || "ให้ทีมงานแนะนำ"],
+                    ["ระยะเวลา", selectedLead.dimensions_scores.proposal_brief.duration],
+                    ["สถานที่", selectedLead.dimensions_scores.proposal_brief.location],
+                    ["กรอบงบประมาณ", selectedLead.dimensions_scores.proposal_brief.budget],
+                    ["โทรศัพท์", selectedLead.dimensions_scores.proposal_brief.phone],
+                  ].map(([label, value]) => <div key={label} className="flex justify-between gap-3"><span className="text-slate-500">{label}</span><span className="text-right whitespace-pre-wrap break-words">{value || "ไม่ได้ระบุ"}</span></div>)}
+                  <a className="block font-semibold text-purple-700 underline" target="_blank" rel="noopener noreferrer" href={`/proposal?programSlug=${encodeURIComponent(selectedLead.dimensions_scores.program_slug)}`}>เปิดกรอบหลักสูตรเพื่อออกแบบ Proposal</a>
+                </div>}
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-500 font-medium">วันที่บันทึก:</span>
                   <span className="text-slate-600">{selectedLead.createdAt}</span>
@@ -563,12 +577,15 @@ export default function AdminCRM() {
                   <span className="text-xs font-bold text-purple-950">Choomcham Proposal & Quotation Engine</span>
                 </div>
                 <p className="text-[11px] text-slate-600 mb-3 leading-relaxed">
-                  สร้างและออกใบเสนอราคาพร้อม 5-Stage Transformation Blueprint ส่งให้องค์กร {selectedLead.company} ได้ทันที
+                  {selectedLead.dimensions_scores?.program_slug ? "เปิดกรอบหลักสูตรและข้อมูล brief เพื่อจัดทำข้อเสนอเฉพาะองค์กร ต้องยืนยันขอบเขตและราคาก่อนส่งลูกค้า" : `สร้างและออกใบเสนอราคาพร้อม 5-Stage Transformation Blueprint สำหรับองค์กร ${selectedLead.company}`}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {(() => {
                     const targetProg = selectedLead.dimensions_scores?.program_interest || selectedLead.teamSize || "REBORN PEOPLE & ALIVE TEAM";
-                    const proposalUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/proposal?company=${encodeURIComponent(selectedLead.company)}&name=${encodeURIComponent(selectedLead.name)}&position=${encodeURIComponent(selectedLead.position)}&teamSize=${encodeURIComponent(selectedLead.teamSize)}&price=185000&program=${encodeURIComponent(targetProg)}`;
+                    const origin = typeof window !== "undefined" ? window.location.origin : "";
+                    const proposalUrl = selectedLead.dimensions_scores?.program_slug
+                      ? `${origin}/proposal?programSlug=${encodeURIComponent(selectedLead.dimensions_scores.program_slug)}`
+                      : `${origin}/proposal?company=${encodeURIComponent(selectedLead.company)}&name=${encodeURIComponent(selectedLead.name)}&position=${encodeURIComponent(selectedLead.position)}&teamSize=${encodeURIComponent(selectedLead.teamSize)}&price=185000&program=${encodeURIComponent(targetProg)}`;
                     return (
                       <>
                         <a
@@ -578,14 +595,14 @@ export default function AdminCRM() {
                           className="flex-1 min-w-[130px] bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors"
                         >
                           <FileText className="w-3.5 h-3.5" />
-                          <span>เปิดดู / พิมพ์ Proposal</span>
+                          <span>{selectedLead.dimensions_scores?.program_slug ? "เปิด / พิมพ์กรอบหลักสูตร" : "เปิดดู / พิมพ์ Proposal"}</span>
                         </a>
-                        <a
+                        {!selectedLead.dimensions_scores?.program_slug && <a
                           href={`/admin/proposals?company=${encodeURIComponent(selectedLead.company)}&name=${encodeURIComponent(selectedLead.name)}&position=${encodeURIComponent(selectedLead.position)}&teamSize=${encodeURIComponent(selectedLead.teamSize)}&program=${encodeURIComponent(targetProg)}`}
                           className="px-3 py-2 bg-pink-50 hover:bg-pink-100 border border-pink-200 text-pink-800 font-semibold rounded-xl text-xs transition-colors flex items-center gap-1"
                         >
                           <span>ปรับแต่งใน Engine ➔</span>
-                        </a>
+                        </a>}
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(proposalUrl);

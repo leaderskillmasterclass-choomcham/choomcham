@@ -7,6 +7,7 @@
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
+    "test:programs": "node scripts/test-program-proposals.mjs",
     "deploy": "react-router build && npx wrangler pages deploy ./build/client --project-name=choomcham --branch=main --commit-dirty=true"
   },
   "dependencies": {

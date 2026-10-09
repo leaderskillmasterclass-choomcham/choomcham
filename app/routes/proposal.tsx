@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router";
+import { getProgram } from "~/lib/programs";
+import { ProgramLayout } from "~/components/layout/ProgramLayout";
+import { ProgramOutline } from "~/components/features/programs/ProgramOutline";
 import { 
   Building2, 
   Calendar, 
@@ -61,6 +64,10 @@ export default function ProposalView() {
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
   };
+
+  const growthProgram = getProgram(searchParams.get("programSlug"));
+  if (growthProgram) return <ProgramLayout><ProgramOutline program={growthProgram} /></ProgramLayout>;
+  if (searchParams.has("programSlug")) return <ProgramLayout><div className="program-container program-section"><h1>ไม่พบกรอบหลักสูตรนี้</h1><Link to="/programs">เลือกหลักสูตร</Link></div></ProgramLayout>;
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 font-sans py-8 px-4 sm:px-6 lg:px-8 print:p-0 print:bg-white">
