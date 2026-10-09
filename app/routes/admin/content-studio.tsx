@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { AdminLayout } from "~/components/admin/AdminLayout";
+import { adminFetch } from "~/lib/admin-api.client";
 import {
   Sparkles,
   Copy,
@@ -16,10 +17,14 @@ import {
   Eye,
   Hash,
   Lightbulb,
+  Bot,
+  Zap,
+  Cpu,
+  AlertCircle,
 } from "lucide-react";
 
 export function meta() {
-  return [{ title: "Content Studio · ร่างจากเทมเพลต | Choomcham House OS" }];
+  return [{ title: "Content Studio · AI & DMF Studio | Choomcham House OS" }];
 }
 
 const PRESET_TOPICS = [
@@ -68,19 +73,57 @@ export default function AdminContentStudio() {
     "PEOPLE" | "TEAM" | "LEADER" | "ORGANIZATION"
   >("ORGANIZATION");
   const [customTopic, setCustomTopic] = useState("");
+  const [customInstructions, setCustomInstructions] = useState("");
   const [targetAudience, setTargetAudience] = useState(
     "ผู้บริหาร, HRD, และคนทำงานยุคใหม่",
   );
+  const [useAI, setUseAI] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<string>("");
+  const [providerInfo, setProviderInfo] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  // Generate V2.0 Content based on Full-Funnel Web & Content System Guide
-  const handleGenerate = (topicToUse?: string) => {
+  // Generate Content with DeepSeek AI or DMF Template
+  const handleGenerate = async (topicToUse?: string) => {
     setIsGenerating(true);
+    setStatusMessage(null);
     const activeTopic = topicToUse || customTopic || PRESET_TOPICS[0].title;
 
+    if (useAI) {
+      try {
+        const res = await adminFetch("/api/content-ai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contentType,
+            angle: selectedAngle,
+            topic: activeTopic,
+            targetAudience,
+            customInstructions,
+          }),
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success && data.data?.content) {
+          setGeneratedContent(data.data.content);
+          setProviderInfo(`${data.data.provider || "DeepSeek AI"} (${data.data.model || "deepseek-chat"})`);
+          setStatusMessage("✨ สร้างสำเร็จด้วย DeepSeek AI ตามหลัก DMF Framework");
+          setIsGenerating(false);
+          return;
+        } else {
+          console.warn("AI generation error, falling back to template:", data.error);
+          setStatusMessage(`⚠️ AI: ${data.error || "ระบบขัดข้อง"} — ปรับไปใช้ Template อัจฉริยะแทน`);
+        }
+      } catch (err) {
+        console.warn("AI fetch failed, falling back to template:", err);
+        setStatusMessage("⚠️ เรียก AI ไม่สำเร็จ — แสดงเนื้อหาจาก Template อัจฉริยะ");
+      }
+    }
+
+    // Template Fallback
     setTimeout(() => {
+      setProviderInfo("Choomcham DMF Template Generator");
       if (contentType === "carousel") {
         setGeneratedContent(
           `
@@ -321,13 +364,60 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
 
   return (
     <AdminLayout
-      title="Content Studio · ร่างจากเทมเพลต"
-      subtitle="ระบบสร้างสรรค์บทความ คอนเทนต์โซเชียล และสคริปต์วิดีโอตามหลัก DMF Framework ของบ้านชุ่มฉ่ำ"
+      title="Content Studio · AI & DMF Studio"
+      subtitle="ระบบสร้างสรรค์บทความ คอนเทนต์โซเชียล และสคริปต์วิดีโอด้วย DeepSeek AI ตามหลัก DMF Framework ของบ้านชุ่มฉ่ำ"
     >
-      <p className="mb-6 p-4 bg-amber-50 rounded-xl text-amber-900">
-        เครื่องมือสร้างร่างจากเทมเพลต ไม่ได้เชื่อม AI ภายนอก
-        กรุณาตรวจเนื้อหาก่อนนำไปเผยแพร่
-      </p>
+      {/* Engine Status Banner */}
+      <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-purple-900/90 via-indigo-900/90 to-purple-800 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 shadow-inner">
+            <Bot className="w-5 h-5 text-purple-300 animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm">Choomcham AI Content Engine</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-semibold">
+                DeepSeek AI Active
+              </span>
+            </div>
+            <p className="text-xs text-purple-200 mt-0.5">
+              ขับเคลื่อนด้วย DeepSeek V3 + DMF Journey (รู้ ➔ เห็น ➔ รู้สึก ➔ สัมผัส ➔ สอดคล้อง)
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 bg-black/20 p-1 rounded-xl border border-white/10 text-xs self-stretch sm:self-auto justify-center">
+          <button
+            onClick={() => setUseAI(true)}
+            className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
+              useAI
+                ? "bg-purple-600 text-white shadow-sm"
+                : "text-purple-200 hover:text-white"
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>DeepSeek AI</span>
+          </button>
+          <button
+            onClick={() => setUseAI(false)}
+            className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
+              !useAI
+                ? "bg-purple-600 text-white shadow-sm"
+                : "text-purple-200 hover:text-white"
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Template</span>
+          </button>
+        </div>
+      </div>
+
+      {statusMessage && (
+        <div className="mb-6 p-3 rounded-xl bg-purple-50 border border-purple-200 text-purple-800 text-xs font-medium flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-purple-600 shrink-0" />
+          <span>{statusMessage}</span>
+        </div>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Controller: Settings & Topics */}
         <div className="lg:col-span-5 space-y-6">
@@ -400,7 +490,7 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
             </div>
 
             {/* Custom Topic Input */}
-            <div className="mb-6">
+            <div className="mb-4">
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                 3. ระบุหัวข้อที่ต้องการสร้าง (Topic Prompt)
               </label>
@@ -413,18 +503,36 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
               />
             </div>
 
+            {/* Custom AI Instructions */}
+            {useAI && (
+              <div className="mb-6">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  4. คำสั่งเสริม / มิติพิเศษ (Optional Prompt Context)
+                </label>
+                <input
+                  type="text"
+                  value={customInstructions}
+                  onChange={(e) => setCustomInstructions(e.target.value)}
+                  placeholder="เช่น เน้นเปรียบเทียบก่อน-หลัง, ใช้ภาษากันเองอบอุ่น"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs text-slate-700 focus:bg-white focus:outline-hidden focus:border-purple-500"
+                />
+              </div>
+            )}
+
             <button
               onClick={() => handleGenerate()}
               disabled={isGenerating}
-              className="w-full py-3.5 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-purple-900/30 flex items-center justify-center gap-2 transition-all hover:scale-101"
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-purple-900/30 flex items-center justify-center gap-2 transition-all hover:scale-101 cursor-pointer disabled:opacity-50"
             >
               <Sparkles
                 className={`w-4 h-4 ${isGenerating ? "animate-spin" : ""}`}
               />
               <span>
                 {isGenerating
-                  ? "กำลังรังสรรค์คอนเทนต์ V2.0..."
-                  : "สร้างร่างจากเทมเพลต"}
+                  ? "กำลังรังสรรค์คอนเทนต์ด้วย AI..."
+                  : useAI
+                    ? "✨ สร้างคอนเทนต์ด้วย DeepSeek AI"
+                    : "สร้างร่างจากเทมเพลต"}
               </span>
             </button>
           </div>
@@ -469,10 +577,17 @@ Choomcham House ได้ออกแบบกระบวนการฟื้�
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
                 <div>
-                  <span className="text-[10px] font-bold tracking-wider text-purple-600 uppercase block">
-                    V2.0 Output Preview & Editor
-                  </span>
-                  <h3 className="text-base font-bold text-slate-900">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold tracking-wider text-purple-600 uppercase block">
+                      V2.0 Output Preview & Editor
+                    </span>
+                    {providerInfo && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 font-semibold">
+                        {providerInfo}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 mt-0.5">
                     {contentType === "carousel"
                       ? "10-Card Social Carousel (DMF Framework)"
                       : contentType === "article"
