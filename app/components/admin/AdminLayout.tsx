@@ -19,6 +19,7 @@ import {
   Crown,
   UserCheck,
   Image as ImageIcon,
+  Database,
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -64,6 +65,12 @@ export function AdminLayout({ children, title, subtitle }: AdminLayoutProps) {
       label: "Team & Roles (RBAC)",
       path: "/admin/users",
       icon: Users,
+      isSuper: true,
+    },
+    {
+      label: "Data Maintenance",
+      path: "/admin/maintenance",
+      icon: Database,
       isSuper: true,
     },
   ];
