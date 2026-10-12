@@ -1,0 +1,4 @@
+Base main: 48f67a6
+Local commit: 3a01953e0b1d0efe08a30b64ea00bccd3b249d53
+
+Complete replacements/additions for 9 changed files only. Apply to a new branch based on the latest main. Read docs/restored-home-sections.md for changes, tests and installation. No database migration. GitHub write failed with 403; this update has not been deployed.

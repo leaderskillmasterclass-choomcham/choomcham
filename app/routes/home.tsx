@@ -1,3 +1,4 @@
+import { RebirthHero, ZombieSignals, OrganizationPain, RebirthBelief, TransformationModel, WhyChoomcham, ChoomchamEcosystem, WhatIsChoomchamHouse, RebirthLearningFramework } from "~/components/sections/RebirthSections";
 import { Link, useFetcher } from "react-router";
 import { programUrl, requestUrl } from "~/lib/programs";
 import type { Route } from "./+types/home";
@@ -848,12 +849,13 @@ export default function Home() {
         {/* ========================================================
             SECTION 1: HERO / องค์กรตัวจริง™
         ======================================================== */}
-        <HomeHero />
+        <RebirthHero />
 
         {/* ========================================================
             SECTION 2: TRUSTED CLIENTS & ORGANIZATIONS
         ======================================================== */}
         <CustomerLogos />
+        <ZombieSignals />
 
         {/* ========================================================
             SECTION 9: INTERACTIVE EVALUATION (ZOMBIE CHECK™)
@@ -1126,6 +1128,12 @@ export default function Home() {
         {/* ========================================================
             SECTION 2: 5 LEVELS TO AUTHENTIC ORGANIZATION (DEEP DIVE)
         ======================================================== */}
+        <OrganizationPain />
+        <RebirthBelief />
+        <WhatIsChoomchamHouse />
+        <TransformationModel />
+        <HomeHero asSection />
+
         <section id="levels" className="py-20 lg:py-28 px-6 bg-brand-white relative">
           <div className="max-w-5xl mx-auto">
             
@@ -1274,6 +1282,8 @@ export default function Home() {
         {/* ========================================================
             SECTION 4: TRUSTED EXPERIENCE & CASE STUDIES
         ======================================================== */}
+        <RebirthLearningFramework />
+        <span id="gallery" className="block scroll-mt-24" aria-hidden="true" />
         <section id="experience" className="py-20 px-6 bg-white border-b border-brand-border/60 relative">
           <div className="max-w-5xl mx-auto">
             
@@ -1741,6 +1751,9 @@ export default function Home() {
         {/* ========================================================
             SECTION 8: ABOUT CHOOMCHAM BRANDING
         ======================================================== */}
+        <WhyChoomcham />
+        <ChoomchamEcosystem />
+
         <section id="about" className="py-20 px-6 bg-brand-surface border-b border-brand-border/60 relative">
           <div className="max-w-5xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
