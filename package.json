@@ -13,7 +13,9 @@
     "test:admin": "node scripts/test-admin.mjs",
     "test:db": "node scripts/test-admin-db.mjs",
     "test:ui": "node scripts/test-admin-ui.mjs",
-    "test:home": "node scripts/test-home-restoration.mjs"
+    "test:home": "node scripts/test-home-restoration.mjs",
+    "test:sales": "node scripts/test-sales-home.mjs",
+    "test:pages": "node scripts/test-pages-routing.mjs"
   },
   "dependencies": {
     "@fontsource-variable/anuphan": "^5.3.0",

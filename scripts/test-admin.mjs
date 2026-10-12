@@ -8,6 +8,7 @@ const temp = await mkdtemp(join(tmpdir(), "admin-test-"));
 try {
   const sources = [
     ["functions/lib/admin-auth.ts", "auth"],
+    ["app/lib/programs.ts", "programs"],
     ["functions/_middleware.ts", "middleware"],
     ["functions/api/leads.ts", "leads"],
     ["functions/api/lead.ts", "lead"],
@@ -30,6 +31,7 @@ try {
       )
       .replace(/['"](?:\.\/lib|\.\.\/lib)\/admin-auth['"]/g, '"./auth.mjs"')
       .replace('"../../app/lib/diagnostic"', '"./diagnostic.mjs"');
+    code = code.replace('"../app/lib/programs"', '"./programs.mjs"');
     await writeFile(
       join(temp, name + ".mjs"),
       ts.transpileModule(code, {
@@ -384,6 +386,47 @@ try {
     200,
   );
   assert.equal(lastPut.options.onlyIf.get("If-None-Match"), "*");
+  for (const path of [
+    "/admin/login",
+    "/admin/dashboard",
+    "/proposal/request",
+    "/topics/team-transformation",
+    "/programs/missing",
+  ]) {
+    let assetUrl;
+    const response = await middleware({
+      request: request(path),
+      env: {
+        ...env,
+        ASSETS: {
+          fetch: async (req) => {
+            assetUrl = new URL(req.url);
+            return new Response("spa fixture");
+          },
+        },
+      },
+      next: async () => {
+        throw new Error("client-only route did not use SPA fallback");
+      },
+    });
+    assert.equal(assetUrl.pathname, "/__spa-fallback");
+    assert.equal(await response.text(), "spa fixture");
+  }
+  for (const path of ["/", "/services", "/programs/reborn"]) {
+    const response = await middleware({
+      request: request(path),
+      env: {
+        ...env,
+        ASSETS: {
+          fetch: async () => {
+            throw new Error("prerendered route was rewritten");
+          },
+        },
+      },
+      next: async () => new Response("prerender fixture"),
+    });
+    assert.equal(await response.text(), "prerender fixture");
+  }
   console.log(
     "PASS: private API access, email confirmation, allowlist, roles, same-origin, no-store, payload validation, archive, persistence failures, server quiz scoring, notification escaping, R2 binding, collision guards and backup-before-archive; no real data or messages",
   );

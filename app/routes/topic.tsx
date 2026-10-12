@@ -131,7 +131,7 @@ export default function TopicPage() {
             <span>กลับหน้าหลัก Choomcham House</span>
           </Link>
           <Link
-            to="/#zombie-check"
+            to="/services#zombie-check"
             className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-full text-xs font-semibold shadow-xs hover:shadow-md transition-all flex items-center gap-1.5"
           >
             <Zap className="w-3.5 h-3.5 text-yellow-300" />
@@ -194,7 +194,7 @@ export default function TopicPage() {
               ใช้เวลาเพียง 2 นาที ทำแบบประเมิน Zombie Organization Index™ เพื่อรับรายงานวิเคราะห์ 7 มิติสุขภาพองค์กรทันที
             </p>
             <Link
-              to="/#zombie-check"
+              to="/services#zombie-check"
               className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white font-bold rounded-full shadow-lg shadow-pink-600/30 active:scale-95 transition-all text-sm"
             >
               <span>เริ่มทำแบบประเมินฟรี</span>

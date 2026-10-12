@@ -15,7 +15,7 @@ const server = createServer(async (req, res) => {
       if ((await stat(path)).isDirectory()) path = resolve(path, "index.html");
       await stat(path);
     } catch {
-      path = resolve(root, "index.html");
+      path = resolve(root, "__spa-fallback.html");
     }
     const types = {
       ".html": "text/html",
@@ -314,7 +314,7 @@ try {
   }
   await page.goto(base + "/proposal");
   assert.equal(await page.getByText("185,000").count(), 0);
-  await page.goto(base + "/");
+  await page.goto(base + "/services");
   await page
     .getByRole("button", {
       name: "🧟 เริ่มทำแบบประเมิน Zombie Check™",

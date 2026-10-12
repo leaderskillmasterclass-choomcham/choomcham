@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 const mainLinks = [
+  ["/", "หน้าแรก"],
   ["#pain", "สภาวะองค์กร"],
   ["#model", "กระบวนการ Reborn"],
   ["#levels", "5 ระดับการเติบโต"],
@@ -52,11 +53,7 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="site-header-inner">
-        <a
-          href="#hero"
-          className="site-brand"
-          aria-label="บ้านชุ่มฉ่ำ หน้าหลัก"
-        >
+        <a href="/" className="site-brand" aria-label="บ้านชุ่มฉ่ำ หน้าหลัก">
           <img src="/chumcham.png" alt="" width="42" height="42" />
           <span>
             CHOO<span className="text-brand-pink">M</span>CHAM

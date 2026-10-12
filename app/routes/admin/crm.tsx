@@ -421,7 +421,7 @@ export default function AdminCRM() {
             ข้อมูลจะปรากฏที่นี่เมื่อรีเฟรชข้อมูล
           </p>
           <a
-            href="/#zombie-check"
+            href="/services#zombie-check"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md transition-all"

@@ -15,7 +15,7 @@ const server = createServer(async (req, res) => {
       if ((await stat(path)).isDirectory()) path = resolve(path, "index.html");
       await stat(path);
     } catch {
-      path = resolve(root, "index.html");
+      path = resolve(root, "__spa-fallback.html");
     }
     const types = {
       ".html": "text/html",
@@ -66,7 +66,7 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   // No real remote API or notification call. This checks the built frontend only.
   await page.route("https://**/*", (route) => route.abort());
-  await page.goto(base + "/");
+  await page.goto(base + "/services");
   await page.locator("#rebirth-hero-title").waitFor();
   await page.evaluate(() => document.fonts.ready);
   const restored = [
@@ -141,7 +141,7 @@ try {
   const desktopLinks = await page
     .locator(".site-desktop-nav a")
     .evaluateAll((els) => els.map((el) => el.getAttribute("href")));
-  for (const href of desktopLinks)
+  for (const href of desktopLinks.filter((href) => href.startsWith("#")))
     assert.equal(await page.locator(href).count(), 1, href);
   for (const width of [1440, 1280, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });

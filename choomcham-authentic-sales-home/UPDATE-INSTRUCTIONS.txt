@@ -1,0 +1,15 @@
+CHOOMCHAM — Standalone Authentic Organization Sales Homepage
+
+Base main: 439292b45f69d69203e4579bc5b7db6b0889ce6a
+Local commit: 003a545f2718c210eab2eb507d3f301a31f69f1c
+
+This archive contains complete replacements/additions for 31 changed files only, not the entire repository. Copy the contents directly into the repository ROOT matching app/, functions/, public/ and scripts/. Do not copy the ZIP's folder name as a nested project.
+
+/ = new sales homepage
+/services = existing website and forms
+/programs = programme catalogue
+/proposal/request = organization proposal brief
+
+Read docs/authentic-sales-home.md for full changes, tests, routes and limitations. No database migration is needed.
+
+GitHub writes returned 403; this update has not been pushed, published or deployed. Pages Functions compile and browser tests passed. The local Cloudflare runtime could not start due to this environment's uv_interface_addresses error; verify the hosting preview before release.

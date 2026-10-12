@@ -1,5 +1,7 @@
 # CHOOMCHAM HOUSE
 
+หน้าแรก `/` เป็น Sale Page องค์กรตัวจริง™; เว็บไซต์บริการเดิมอยู่ที่ `/services`. ดู [คู่มือหน้าแรกใหม่](docs/authentic-sales-home.md).
+
 เว็บไซต์ 5 Levels of Growth + Flagship และระบบ Admin สำหรับ CRM, ออกแบบหลักสูตร/Proposal, โครงการอบรม, Partner Ledger และสื่อ
 
 React Router SPA/prerender + Cloudflare Pages Functions + Supabase Auth/PostgreSQL + R2
@@ -29,6 +31,8 @@ npx wrangler pages functions build functions --outdir /tmp/choomcham-functions-c
 VITE_SUPABASE_URL=https://admin-test.invalid VITE_SUPABASE_ANON_KEY=test-public-placeholder npm run build
 npx playwright install chromium
 npm run test:ui
+npm run test:home
+npm run test:sales
 npm run build
 ```
 

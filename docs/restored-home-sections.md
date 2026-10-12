@@ -1,5 +1,7 @@
 # นำเนื้อหาหน้าแรก CHOOMCHAM HOUSE กลับมา
 
+หมายเหตุ: ในรุ่น Sale Page ใหม่ เนื้อหาที่คืนในงานนี้อยู่ที่ `/services`; หน้าแรก `/` เป็นองค์กรตัวจริง™ ดู [คู่มือหน้าแรกใหม่](authentic-sales-home.md).
+
 วันที่: 12 ตุลาคม 2026
 
 อ้างอิงภาพหน้าจอ 5 ภาพที่ผู้ใช้แนบ, preview `https://df1e75fc.choomcham.pages.dev/` และ source ใน commit `25570e75b9757caaa5c65104fa0cc8e4c957a634`.
